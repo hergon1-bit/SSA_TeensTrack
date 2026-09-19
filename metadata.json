@@ -1,0 +1,5 @@
+{
+  "name": "Sistema de Seguimiento de Adolescentes",
+  "description": "Una aplicación web completa para gestionar adolescentes, reuniones, eventos y tutores en una organización, con control de acceso basado en roles y reportes detallados.",
+  "requestFramePermissions": []
+}

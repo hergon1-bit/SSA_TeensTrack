@@ -1,0 +1,2 @@
+﻿pages/Eventos.tsx(203,54): error TS2345: Argument of type '{ eventoId: string; fechaEntrega: string; nombrePersona: string; cantidadEntradas: number; numerosEntradas: string; }' is not assignable to parameter of type 'Omit<EntregaAdhesion, "id">'.
+  Type '{ eventoId: string; fechaEntrega: string; nombrePersona: string; cantidadEntradas: number; numerosEntradas: string; }' is missing the following properties from type 'Omit<EntregaAdhesion, "id">': costoTotal, precioVentaUnitario

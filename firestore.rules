@@ -1,0 +1,366 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 0. Global Safety Net
+    match /{document=**} { 
+      allow read, write: if false; 
+    }
+
+    // ===============================================================
+    // Primitives & Helpers
+    // ===============================================================
+    
+    // Auth token contains the email_verified if signed in with Google
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Primitive guards
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\\\-]+$'); 
+    }
+
+    function incoming() { 
+      return request.resource.data; 
+    }
+
+    function existing() { 
+      return resource.data; 
+    }
+
+    function isFirstAdminBootstrap() {
+      // In first setup there is no roles or usuarios, so we fallback to allow if auth present
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+
+    function getRoleData(rolId) {
+      return get(/databases/$(database)/documents/roles/$(string(rolId))).data;
+    }
+
+    function hasPermission(module, action) {
+      let userData = getUserData();
+      return userData != null && getRoleData(userData.rolId).permisos[module][action] == true;
+    }
+
+    function isAdmin() {
+      let userData = getUserData();
+      // The role "1" is presumed to be the admin role
+      return userData != null && (string(userData.rolId) == '1');
+    }
+
+    // ===============================================================
+    // Verification Blueprints
+    // ===============================================================
+
+    function isValidPermisos(data) {
+      return data.keys().size() >= 0;
+    }
+
+    function isValidRol(data) {
+      return (!data.keys().hasAll(['nombre']) || (data.nombre is string && data.nombre.size() <= 200));
+    }
+
+    function isValidUsuario(data) {
+      return (!data.keys().hasAll(['email']) || (data.email is string && data.email.size() <= 200))
+          && (!data.keys().hasAll(['nombre']) || (data.nombre is string && data.nombre.size() <= 200));
+    }
+
+    function isValidAdolescente(data) {
+      return (!data.keys().hasAll(['nombre']) || (data.nombre is string && data.nombre.size() <= 200))
+          && (!data.keys().hasAll(['cedula']) || (data.cedula is string && data.cedula.size() <= 100))
+          && (!data.keys().hasAll(['estado']) || (data.estado is string && data.estado in ['Activo', 'Inactivo', 'Anulado']));
+    }
+
+    function isValidServidor(data) {
+      return (!data.keys().hasAll(['nombre']) || (data.nombre is string && data.nombre.size() <= 200));
+    }
+
+    function isValidInscripcionServidor(data) {
+       return data.keys().size() >= 0;
+    }
+
+    function isValidPagoServidor(data) {
+      return data.keys().size() >= 0;
+    }
+
+    function isValidEncargado(data) {
+      return (!data.keys().hasAll(['nombre']) || (data.nombre is string && data.nombre.size() <= 200));
+    }
+
+    function isValidReunion(data) {
+      return (!data.keys().hasAll(['fecha']) || (data.fecha is string))
+          && (!data.keys().hasAll(['estado']) || (data.estado is string && data.estado in ['En Proceso', 'Finalizado']));
+    }
+
+    function isValidAsistencia(data) {
+      return (!data.keys().hasAll(['estado']) || (data.estado is string && data.estado in ['Presente', 'Ausente']));
+    }
+
+    function isValidTutor(data) {
+      return (!data.keys().hasAll(['nombre']) || (data.nombre is string && data.nombre.size() <= 200));
+    }
+
+    function isValidTutorAdolescente(data) {
+      return data.keys().size() >= 0;
+    }
+
+    function isValidEvento(data) {
+      return (!data.keys().hasAll(['tema']) || (data.tema is string && data.tema.size() <= 200));
+    }
+
+    function isValidInscripcionEvento(data) {
+      return data.keys().size() >= 0;
+    }
+
+    function isValidPagoEvento(data) {
+      return data.keys().size() >= 0;
+    }
+
+    function isValidParticipanteEvento(data) {
+      return data.keys().size() >= 0;
+    }
+
+    function isValidCelebracionCumpleanos(data) {
+      return data.keys().size() >= 0;
+    }
+
+    function isValidDevocional(data) {
+      return data.keys().size() >= 0;
+    }
+
+    function isValidEntregaDevocional(data) {
+      return data.keys().size() >= 0;
+    }
+
+    function isValidTemaClase(data) {
+      return data.keys().size() >= 0;
+    }
+
+    function isValidEntregaAdhesion(data) {
+      return data.keys().size() >= 0;
+    }
+
+    function isValidPagoAdhesion(data) {
+      return data.keys().size() >= 0;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /public/config {
+      allow read: if true;
+      allow write: if isFirstAdminBootstrap();
+    }
+
+    match /roles/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidId(docId);
+      allow update: if isAuthenticated() && isValidId(docId);
+      allow delete: if isAuthenticated() && isValidId(docId) && (isAdmin() || hasPermission('roles', 'delete'));
+    }
+
+    match /usuarios/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidId(docId);
+      allow update: if isAuthenticated() && isValidId(docId);
+      allow delete: if isAuthenticated() && isValidId(docId) && (isAdmin() || hasPermission('usuarios', 'delete'));
+    }
+
+    match /adolescentes/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('adolescentes', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('adolescentes', 'create')) && isValidAdolescente(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('adolescentes', 'update')) && isValidAdolescente(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('adolescentes', 'delete'));
+    }
+
+    match /servidores/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('servidores', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('servidores', 'create')) && isValidServidor(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('servidores', 'update')) && isValidServidor(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('servidores', 'delete'));
+    }
+
+    match /inscripciones_servidores/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('inscripciones_servidores', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('inscripciones_servidores', 'create')) && isValidInscripcionServidor(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('inscripciones_servidores', 'update')) && isValidInscripcionServidor(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('inscripciones_servidores', 'delete'));
+    }
+
+    match /pagos_servidores/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('pagos_servidores', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('pagos_servidores', 'create')) && isValidPagoServidor(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('pagos_servidores', 'update')) && isValidPagoServidor(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('pagos_servidores', 'delete'));
+    }
+
+    match /encargados/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('encargados', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('encargados', 'create')) && isValidEncargado(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('encargados', 'update')) && isValidEncargado(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('encargados', 'delete'));
+    }
+
+    match /reuniones/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('reuniones', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('reuniones', 'create')) && isValidReunion(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('reuniones', 'update')) && isValidReunion(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('reuniones', 'delete'));
+    }
+
+    match /asistencias/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('asistencias', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('asistencias', 'create')) && isValidAsistencia(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('asistencias', 'update')) && isValidAsistencia(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('asistencias', 'delete'));
+    }
+
+    match /tutores/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('tutores', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('tutores', 'create')) && isValidTutor(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('tutores', 'update')) && isValidTutor(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('tutores', 'delete'));
+    }
+
+    match /tutor_adolescente/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('tutor_adolescente', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('tutor_adolescente', 'create')) && isValidTutorAdolescente(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('tutor_adolescente', 'update')) && isValidTutorAdolescente(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('tutor_adolescente', 'delete'));
+    }
+
+    match /eventos/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('eventos', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('eventos', 'create')) && isValidEvento(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('eventos', 'update')) && isValidEvento(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('eventos', 'delete'));
+    }
+
+    match /inscripciones_eventos/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('inscripciones_eventos', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('inscripciones_eventos', 'create')) && isValidInscripcionEvento(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('inscripciones_eventos', 'update')) && isValidInscripcionEvento(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('inscripciones_eventos', 'delete'));
+    }
+
+    match /pagos_eventos/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('pagos_eventos', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('pagos_eventos', 'create')) && isValidPagoEvento(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('pagos_eventos', 'update')) && isValidPagoEvento(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('pagos_eventos', 'delete'));
+    }
+
+    match /participantes_eventos/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('participantes_eventos', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('participantes_eventos', 'create')) && isValidParticipanteEvento(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('participantes_eventos', 'update')) && isValidParticipanteEvento(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('participantes_eventos', 'delete'));
+    }
+
+    match /celebraciones_cumpleanos/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('celebraciones_cumpleanos', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('celebraciones_cumpleanos', 'create')) && isValidCelebracionCumpleanos(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('celebraciones_cumpleanos', 'update')) && isValidCelebracionCumpleanos(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('celebraciones_cumpleanos', 'delete'));
+    }
+
+    match /devocionales/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('devocionales', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('devocionales', 'create')) && isValidDevocional(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('devocionales', 'update')) && isValidDevocional(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('devocionales', 'delete'));
+    }
+
+    match /entregas_devocionales/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('entregas_devocionales', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('entregas_devocionales', 'create')) && isValidEntregaDevocional(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('entregas_devocionales', 'update')) && isValidEntregaDevocional(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('entregas_devocionales', 'delete'));
+    }
+
+    match /temas_clases/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('plan_clases', 'read') || hasPermission('reuniones', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('plan_clases', 'create') || hasPermission('reuniones', 'create')) && isValidTemaClase(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('plan_clases', 'update') || hasPermission('reuniones', 'update')) && isValidTemaClase(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('plan_clases', 'delete') || hasPermission('reuniones', 'delete'));
+    }
+
+    match /entregas_adhesiones/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('eventos', 'read') || hasPermission('inscripciones_eventos', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('eventos', 'create') || hasPermission('inscripciones_eventos', 'create')) && isValidEntregaAdhesion(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('eventos', 'update') || hasPermission('inscripciones_eventos', 'update')) && isValidEntregaAdhesion(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('eventos', 'delete') || hasPermission('inscripciones_eventos', 'delete'));
+    }
+
+    match /pagos_adhesiones/{docId} {
+      allow read: if isAuthenticated() && (isAdmin() || hasPermission('pagos_eventos', 'read') || hasPermission('eventos', 'read'));
+      allow create: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('pagos_eventos', 'create') || hasPermission('eventos', 'create')) && isValidPagoAdhesion(incoming());
+      allow update: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('pagos_eventos', 'update') || hasPermission('eventos', 'update')) && isValidPagoAdhesion(incoming());
+      allow delete: if isAuthenticated() && isValidId(docId) && 
+                      (isAdmin() || hasPermission('pagos_eventos', 'delete') || hasPermission('eventos', 'delete'));
+    }
+  }
+}

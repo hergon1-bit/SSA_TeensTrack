@@ -1,0 +1,1 @@
+import { PrismaClient } from '@prisma/client'; const prisma = new PrismaClient(); async function run() { await prisma.usuario.updateMany({ where: { email: 'hergon1@gmail.com' }, data: { passwordHash: 'Admin1234!' } }); console.log('Password updated successfully'); } run().finally(() => prisma.$disconnect());

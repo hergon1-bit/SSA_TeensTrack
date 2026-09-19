@@ -1,0 +1,390 @@
+{
+  "entities": {
+    "Permisos": {
+      "title": "Permisos",
+      "description": "Permisos CRUD para un módulo",
+      "type": "object",
+      "properties": {
+        "read": { "type": "boolean" },
+        "create": { "type": "boolean" },
+        "update": { "type": "boolean" },
+        "delete": { "type": "boolean" }
+      },
+      "required": ["read", "create", "update", "delete"]
+    },
+    "Rol": {
+      "title": "Rol",
+      "description": "Rol de usuario con permisos",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "nombre": { "type": "string" },
+        "permisos": {
+          "type": "object",
+          "properties": {
+            "adolescentes": { "$ref": "Permisos" },
+            "asistencias": { "$ref": "Permisos" },
+            "celebraciones_cumpleanos": { "$ref": "Permisos" },
+            "devocionales": { "$ref": "Permisos" },
+            "encargados": { "$ref": "Permisos" },
+            "entregas_devocionales": { "$ref": "Permisos" },
+            "eventos": { "$ref": "Permisos" },
+            "inscripciones_eventos": { "$ref": "Permisos" },
+            "inscripciones_servidores": { "$ref": "Permisos" },
+            "pagos_eventos": { "$ref": "Permisos" },
+            "pagos_servidores": { "$ref": "Permisos" },
+            "participantes_eventos": { "$ref": "Permisos" },
+            "plan_clases": { "$ref": "Permisos" },
+            "reuniones": { "$ref": "Permisos" },
+            "roles": { "$ref": "Permisos" },
+            "servidores": { "$ref": "Permisos" },
+            "tutor_adolescente": { "$ref": "Permisos" },
+            "tutores": { "$ref": "Permisos" },
+            "usuarios": { "$ref": "Permisos" }
+          }
+        }
+      },
+      "required": ["id", "nombre", "permisos"]
+    },
+    "Usuario": {
+      "title": "Usuario",
+      "description": "Usuario del sistema",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "nombre": { "type": "string" },
+        "rolId": { "type": "number" },
+        "avatarUrl": { "type": "string" },
+        "lastSignInAt": { "type": "string" }
+      },
+      "required": ["id", "email", "nombre", "rolId"]
+    },
+    "Adolescente": {
+      "title": "Adolescente",
+      "description": "Adolescente registrado",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "nombre": { "type": "string" },
+        "apellido": { "type": "string" },
+        "cedula": { "type": "string" },
+        "registro": { "type": "string" },
+        "fechaNacimiento": { "type": "string" },
+        "barrio": { "type": "string" },
+        "ciudad": { "type": "string" },
+        "telefono": { "type": "string" },
+        "sexo": { "type": "string", "enum": ["Masculino", "Femenino"] },
+        "estado": { "type": "string", "enum": ["Activo", "Inactivo", "Anulado"] },
+        "fichaInscripcion": { "type": "boolean" },
+        "autorizacion": { "type": "boolean" }
+      },
+      "required": ["id", "nombre", "apellido", "cedula", "registro", "fechaNacimiento", "barrio", "ciudad", "telefono", "sexo", "estado"]
+    },
+    "Servidor": {
+      "title": "Servidor",
+      "description": "Servidor o apoyo",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "nombre": { "type": "string" },
+        "apellido": { "type": "string" },
+        "cedula": { "type": "string" },
+        "registro": { "type": "string" },
+        "telefono": { "type": "string" },
+        "ciudad": { "type": "string" }
+      },
+      "required": ["id", "nombre", "apellido", "cedula", "registro", "telefono", "ciudad"]
+    },
+    "InscripcionServidor": {
+      "title": "InscripcionServidor",
+      "description": "Inscripción de un servidor a un evento",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "eventoId": { "type": "number" },
+        "servidorId": { "type": "number" },
+        "rol": { "type": "string", "enum": ["Pastor", "Padre", "Madre", "Lider de Color", "Lider de Campamento", "Cuidador", "Apoyo", "Cocina", "Sonido", "Alabanza", "Otro"] },
+        "tipoBeca": { "type": "string", "enum": ["Ninguna", "Parcial", "Total"] },
+        "montoAcordado": { "type": "number" },
+        "iglesiaPagaSaldo": { "type": "boolean" },
+        "precioEspecialLocal": { "type": "boolean" },
+        "notas": { "type": "string" }
+      },
+      "required": ["id", "eventoId", "servidorId", "rol"]
+    },
+    "PagoServidor": {
+      "title": "PagoServidor",
+      "description": "Pago de un servidor",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "inscripcionServidorId": { "type": "number" },
+        "fecha": { "type": "string" },
+        "monto": { "type": "number" },
+        "notas": { "type": "string" }
+      },
+      "required": ["id", "inscripcionServidorId", "fecha", "monto"]
+    },
+    "Encargado": {
+      "title": "Encargado",
+      "description": "Encargado de reuniones",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "nombre": { "type": "string" },
+        "apellido": { "type": "string" },
+        "cedula": { "type": "string" },
+        "fechaNacimiento": { "type": "string" },
+        "barrio": { "type": "string" },
+        "ciudad": { "type": "string" },
+        "telefono": { "type": "string" },
+        "email": { "type": "string" }
+      },
+      "required": ["id", "nombre", "apellido", "cedula", "barrio", "ciudad", "telefono"]
+    },
+    "Reunion": {
+      "title": "Reunion",
+      "description": "Reunión",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "fecha": { "type": "string" },
+        "tema": { "type": "string" },
+        "encargadoId": { "type": "number" },
+        "estado": { "type": "string", "enum": ["En Proceso", "Finalizado"] }
+      },
+      "required": ["id", "fecha", "tema", "encargadoId", "estado"]
+    },
+    "Asistencia": {
+      "title": "Asistencia",
+      "description": "Asistencia a reunión",
+      "type": "object",
+      "properties": {
+        "reunionId": { "type": "number" },
+        "adolescenteId": { "type": "number" },
+        "estado": { "type": "string", "enum": ["Presente", "Ausente"] },
+        "detalle": { "type": "string", "enum": ["Regular", "Primera Vez", "Regresa"] }
+      },
+      "required": ["reunionId", "adolescenteId", "estado"]
+    },
+    "Tutor": {
+      "title": "Tutor",
+      "description": "Tutor de adolescente",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "nombre": { "type": "string" },
+        "apellido": { "type": "string" },
+        "cedula": { "type": "string" },
+        "telefono": { "type": "string" },
+        "parentesco": { "type": "string", "enum": ["Padre", "Madre", "Tío", "Tía", "Abuelo", "Abuela", "Tutor Legal"] },
+        "barrio": { "type": "string" },
+        "ciudad": { "type": "string" }
+      },
+      "required": ["id", "nombre", "apellido", "cedula", "telefono", "parentesco", "barrio", "ciudad"]
+    },
+    "TutorAdolescente": {
+      "title": "TutorAdolescente",
+      "description": "Relación Tutor-Adolescente",
+      "type": "object",
+      "properties": {
+        "tutorId": { "type": "number" },
+        "adolescenteId": { "type": "number" }
+      },
+      "required": ["tutorId", "adolescenteId"]
+    },
+    "Evento": {
+      "title": "Evento",
+      "description": "Evento",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "tema": { "type": "string" },
+        "lugar": { "type": "string" },
+        "fechaInicio": { "type": "string" },
+        "horaInicio": { "type": "string" },
+        "fechaFin": { "type": "string" },
+        "horaFin": { "type": "string" },
+        "tieneCosto": { "type": "boolean" },
+        "costoTotal": { "type": "number" },
+        "costoPersona": { "type": "number" },
+        "esParaPadres": { "type": "boolean" },
+        "finalizado": { "type": "boolean" }
+      },
+      "required": ["id", "tema", "lugar", "fechaInicio", "horaInicio", "fechaFin", "horaFin", "tieneCosto"]
+    },
+    "InscripcionEvento": {
+      "title": "InscripcionEvento",
+      "description": "Inscripción a evento",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "eventoId": { "type": "number" },
+        "adolescenteId": { "type": "number" },
+        "tutorId": { "type": "number" },
+        "fechaInscripcion": { "type": "string" },
+        "notas": { "type": "string" },
+        "asistio": { "type": "boolean" }
+      },
+      "required": ["id", "eventoId", "fechaInscripcion"]
+    },
+    "PagoEvento": {
+      "title": "PagoEvento",
+      "description": "Pago de evento",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "inscripcionId": { "type": "number" },
+        "fecha": { "type": "string" },
+        "monto": { "type": "number" },
+        "notas": { "type": "string" }
+      },
+      "required": ["id", "inscripcionId", "fecha", "monto"]
+    },
+    "ParticipanteEvento": {
+      "title": "ParticipanteEvento",
+      "description": "Participante de evento",
+      "type": "object",
+      "properties": {
+        "eventoId": { "type": "number" },
+        "adolescenteId": { "type": "number" }
+      },
+      "required": ["eventoId", "adolescenteId"]
+    },
+    "CelebracionCumpleanos": {
+      "title": "CelebracionCumpleanos",
+      "description": "Cumpleaños celebrado",
+      "type": "object",
+      "properties": {
+        "adolescenteId": { "type": "number" },
+        "ano": { "type": "number" }
+      },
+      "required": ["adolescenteId", "ano"]
+    },
+    "Devocional": {
+      "title": "Devocional",
+      "description": "Devocional",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "numeroSemana": { "type": "number" },
+        "tema": { "type": "string" },
+        "fechaDistribucion": { "type": "string" },
+        "fechaVencimiento": { "type": "string" }
+      },
+      "required": ["id", "numeroSemana", "tema", "fechaDistribucion", "fechaVencimiento"]
+    },
+    "EntregaDevocional": {
+      "title": "EntregaDevocional",
+      "description": "Entrega de devocional",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "devocionalId": { "type": "number" },
+        "adolescenteId": { "type": "number" },
+        "fechaEntrega": { "type": "string" },
+        "observaciones": { "type": "string" }
+      },
+      "required": ["id", "devocionalId", "adolescenteId", "fechaEntrega"]
+    },
+    "TemaClase": {
+      "title": "TemaClase",
+      "description": "Tema candidato y plan de clases para adolescentes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "titulo": { "type": "string" },
+        "descripcion": { "type": "string" },
+        "objetivos": { "type": "string" },
+        "prioridad": { "type": "string", "enum": ["Alta", "Media", "Baja"] },
+        "orden": { "type": "number" },
+        "desarrollado": { "type": "boolean" },
+        "fechaDesarrollo": { "type": "string" },
+        "fechaProgramada": { "type": "string" },
+        "encargadoId": { "type": "string" },
+        "materiales": { "type": "array" },
+        "notas": { "type": "string" }
+      },
+      "required": ["titulo", "prioridad", "desarrollado"]
+    }
+  },
+  "firestore": {
+    "roles": {
+      "schema": { "$ref": "Rol" },
+      "description": "Roles del sistema"
+    },
+    "usuarios": {
+      "schema": { "$ref": "Usuario" },
+      "description": "Usuarios del sistema"
+    },
+    "adolescentes": {
+      "schema": { "$ref": "Adolescente" },
+      "description": "Adolescentes"
+    },
+    "servidores": {
+      "schema": { "$ref": "Servidor" },
+      "description": "Servidores"
+    },
+    "inscripciones_servidores": {
+      "schema": { "$ref": "InscripcionServidor" },
+      "description": "Inscripciones de servidores"
+    },
+    "pagos_servidores": {
+      "schema": { "$ref": "PagoServidor" },
+      "description": "Pagos de servidores"
+    },
+    "encargados": {
+      "schema": { "$ref": "Encargado" },
+      "description": "Encargados"
+    },
+    "reuniones": {
+      "schema": { "$ref": "Reunion" },
+      "description": "Reuniones"
+    },
+    "asistencias": {
+      "schema": { "$ref": "Asistencia" },
+      "description": "Asistencias a reuniones"
+    },
+    "tutores": {
+      "schema": { "$ref": "Tutor" },
+      "description": "Tutores"
+    },
+    "tutor_adolescente": {
+      "schema": { "$ref": "TutorAdolescente" },
+      "description": "Relación Tutor-Adolescente"
+    },
+    "eventos": {
+      "schema": { "$ref": "Evento" },
+      "description": "Eventos"
+    },
+    "inscripciones_eventos": {
+      "schema": { "$ref": "InscripcionEvento" },
+      "description": "Inscripciones a eventos"
+    },
+    "pagos_eventos": {
+      "schema": { "$ref": "PagoEvento" },
+      "description": "Pagos de eventos"
+    },
+    "participantes_eventos": {
+      "schema": { "$ref": "ParticipanteEvento" },
+      "description": "Participantes de eventos"
+    },
+    "celebraciones_cumpleanos": {
+      "schema": { "$ref": "CelebracionCumpleanos" },
+      "description": "Cumpleaños celebrados"
+    },
+    "devocionales": {
+      "schema": { "$ref": "Devocional" },
+      "description": "Devocionales"
+    },
+    "entregas_devocionales": {
+      "schema": { "$ref": "EntregaDevocional" },
+      "description": "Entregas de devocionales"
+    },
+    "temas_clases": {
+      "schema": { "$ref": "TemaClase" },
+      "description": "Candidatos a temas y plan de clases para Teens"
+    }
+  }
+}

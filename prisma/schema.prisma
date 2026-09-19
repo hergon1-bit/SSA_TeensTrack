@@ -1,0 +1,276 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:chinchi2005@localhost:5432/teenstracker_db?schema=public"
+}
+
+model Rol {
+  id       String    @id @default(cuid())
+  nombre   String
+  permisos Json // Se guardará el objeto JSon con todos los permisos booleanos
+  usuarios Usuario[]
+}
+
+model Usuario {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  nombre       String
+  passwordHash String?
+  rolId        String
+  rol          Rol       @relation(fields: [rolId], references: [id])
+  avatarUrl    String?
+  lastSignInAt DateTime?
+}
+
+model Adolescente {
+  id                    String                  @id @default(cuid())
+  nombre                String
+  apellido              String
+  cedula                String                  @unique
+  registro              String?
+  fechaNacimiento       String
+  barrio                String
+  ciudad                String
+  telefono              String
+  sexo                  String
+  estado                String // "Activo" | "Inactivo" | "Anulado"
+  fichaInscripcion      Boolean                 @default(false)
+  autorizacion          Boolean                 @default(false)
+  asistencias           Asistencia[]
+  tutores               TutorAdolescente[]
+  inscripcionesEventos  InscripcionEvento[]
+  participacionesEvento ParticipanteEvento[]
+  celebraciones         CelebracionCumpleanos[]
+  entregasDevocionales  EntregaDevocional[]
+  entregasAdhesion      EntregaAdhesion[]
+}
+
+model Encargado {
+  id              String    @id @default(cuid())
+  nombre          String
+  apellido        String
+  cedula          String    @unique
+  fechaNacimiento String?
+  barrio          String
+  ciudad          String
+  telefono        String
+  email           String?
+  reuniones       Reunion[]
+}
+
+model Reunion {
+  id          String       @id @default(cuid())
+  fecha       String
+  tema        String
+  encargadoId String
+  encargado   Encargado    @relation(fields: [encargadoId], references: [id])
+  estado      String // "En Proceso" | "Finalizado"
+  esTeensPro  Boolean      @default(false)
+  asistencias Asistencia[]
+}
+
+model Asistencia {
+  id            String      @id @default(cuid())
+  reunionId     String
+  reunion       Reunion     @relation(fields: [reunionId], references: [id])
+  adolescenteId String
+  adolescente   Adolescente @relation(fields: [adolescenteId], references: [id])
+  estado        String // "Presente" | "Ausente"
+  detalle       String? // "Regular" | "Primera Vez" | "Regresa"
+
+  @@unique([reunionId, adolescenteId])
+}
+
+model Tutor {
+  id           String             @id @default(cuid())
+  nombre       String
+  apellido     String
+  cedula       String             @unique
+  telefono     String
+  parentesco   String
+  barrio       String
+  ciudad       String
+  adolescentes TutorAdolescente[]
+  inscritos    InscripcionEvento[] // Optional, for Tutor registering
+  entregas     EntregaAdhesion[] // Optional, for Tutor
+}
+
+model TutorAdolescente {
+  id            String      @id @default(cuid())
+  tutorId       String
+  tutor         Tutor       @relation(fields: [tutorId], references: [id])
+  adolescenteId String
+  adolescente   Adolescente @relation(fields: [adolescenteId], references: [id])
+
+  @@unique([tutorId, adolescenteId])
+}
+
+// -- Servidores (Apoyo) --
+model Servidor {
+  id             String                @id @default(cuid())
+  nombre         String
+  apellido       String
+  cedula         String                @unique
+  registro       String?
+  telefono       String
+  ciudad         String
+  inscripciones  InscripcionServidor[]
+  entregas       EntregaAdhesion[]
+}
+
+model Evento {
+  id                    String                @id @default(cuid())
+  tema                  String
+  lugar                 String
+  fechaInicio           String
+  horaInicio            String
+  fechaFin              String
+  horaFin               String
+  tieneCosto            Boolean               @default(false)
+  costoTotal            Float?
+  costoPersona          Float?
+  esParaPadres          Boolean               @default(false)
+  finalizado            Boolean               @default(false)
+  esVentaAdhesiones     Boolean               @default(false)
+  precioCostoUnitario   Float?
+  precioVentaUnitario   Float?
+  cantidadTotalEntradas Int?
+  inscripciones         InscripcionEvento[]
+  inscripcionesServidor InscripcionServidor[]
+  participantes         ParticipanteEvento[]
+  entregasAdhesion      EntregaAdhesion[]
+  pagosAdhesion         PagoAdhesion[]
+}
+
+model InscripcionEvento {
+  id               String       @id @default(cuid())
+  eventoId         String
+  evento           Evento       @relation(fields: [eventoId], references: [id])
+  adolescenteId    String?
+  adolescente      Adolescente? @relation(fields: [adolescenteId], references: [id])
+  tutorId          String?
+  tutor            Tutor?       @relation(fields: [tutorId], references: [id])
+  fechaInscripcion String
+  notas            String?
+  asistio          Boolean      @default(false)
+  pagos            PagoEvento[]
+}
+
+model PagoEvento {
+  id            String            @id @default(cuid())
+  inscripcionId String
+  inscripcion   InscripcionEvento @relation(fields: [inscripcionId], references: [id])
+  fecha         String
+  monto         Float
+  notas         String?
+}
+
+model ParticipanteEvento {
+  id            String      @id @default(cuid())
+  eventoId      String
+  evento        Evento      @relation(fields: [eventoId], references: [id])
+  adolescenteId String
+  adolescente   Adolescente @relation(fields: [adolescenteId], references: [id])
+
+  @@unique([eventoId, adolescenteId])
+}
+
+model EntregaAdhesion {
+  id                  String       @id @default(cuid())
+  eventoId            String
+  evento              Evento       @relation(fields: [eventoId], references: [id])
+  fechaEntrega        String
+  nombrePersona       String
+  adolescenteId       String?
+  adolescente         Adolescente? @relation(fields: [adolescenteId], references: [id])
+  tutorId             String?
+  tutor               Tutor?       @relation(fields: [tutorId], references: [id])
+  servidorId          String?
+  servidor            Servidor?    @relation(fields: [servidorId], references: [id])
+  cantidadEntradas    Int
+  numerosEntradas     String?
+  precioVentaUnitario Float
+  costoTotal          Float
+  notas               String?
+  pagos               PagoAdhesion[]
+}
+
+model PagoAdhesion {
+  id                String          @id @default(cuid())
+  entregaAdhesionId String
+  entregaAdhesion   EntregaAdhesion @relation(fields: [entregaAdhesionId], references: [id])
+  eventoId          String
+  evento            Evento          @relation(fields: [eventoId], references: [id])
+  fechaPago         String
+  monto             Float
+  registradoPor     String?
+  notas             String?
+}
+
+model InscripcionServidor {
+  id                  String         @id @default(cuid())
+  eventoId            String
+  evento              Evento         @relation(fields: [eventoId], references: [id])
+  servidorId          String
+  servidor            Servidor       @relation(fields: [servidorId], references: [id])
+  rol                 String // Enum string
+  tipoBeca            String?
+  montoAcordado       Float?
+  iglesiaPagaSaldo    Boolean?
+  precioEspecialLocal Boolean?
+  notas               String?
+  pagos               PagoServidor[]
+}
+
+model PagoServidor {
+  id                    String              @id @default(cuid())
+  inscripcionServidorId String
+  inscripcionServidor   InscripcionServidor @relation(fields: [inscripcionServidorId], references: [id])
+  fecha                 String
+  monto                 Float
+  notas                 String?
+}
+
+model CelebracionCumpleanos {
+  id            String      @id @default(cuid())
+  adolescenteId String
+  adolescente   Adolescente @relation(fields: [adolescenteId], references: [id])
+  ano           Int
+}
+
+model Devocional {
+  id                String              @id @default(cuid())
+  numeroSemana      Int
+  tema              String
+  fechaDistribucion String
+  fechaVencimiento  String
+  entregas          EntregaDevocional[]
+}
+
+model EntregaDevocional {
+  id            String      @id @default(cuid())
+  devocionalId  String
+  devocional    Devocional  @relation(fields: [devocionalId], references: [id])
+  adolescenteId String
+  adolescente   Adolescente @relation(fields: [adolescenteId], references: [id])
+  fechaEntrega  String
+  observaciones String?
+}
+
+model TemaClase {
+  id              String   @id @default(cuid())
+  titulo          String
+  descripcion     String?
+  objetivos       String?
+  prioridad       String
+  orden           Int
+  desarrollado    Boolean  @default(false)
+  fechaDesarrollo String?
+  fechaProgramada String?
+  encargadoId     String?
+  materiales      Json     // Array of MaterialAdjunto objects
+  notas           String?
+}
