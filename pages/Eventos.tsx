@@ -94,6 +94,13 @@ const Eventos: React.FC = () => {
     const [isTicketSelectorOpen, setIsTicketSelectorOpen] = useState(false);
     const [ticketSelectorTarget, setTicketSelectorTarget] = useState<'create' | 'edit'>('create');
 
+    // Ticket Validation State
+    const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
+    const [validationTicketNumber, setValidationTicketNumber] = useState('');
+    const [validationMessage, setValidationMessage] = useState<{ type: 'success' | 'error' | 'warning' | 'info'; text: string } | null>(null);
+    const [validationEntrega, setValidationEntrega] = useState<any>(null); // To store the found entrega
+    const [validationPaymentMonto, setValidationPaymentMonto] = useState('');
+
     // Numbers calculation for committed tickets in current event
     const committedTicketNumbers = useMemo(() => {
         if (!selectedEvent) return [];
@@ -293,6 +300,94 @@ const Eventos: React.FC = () => {
             await deleteEntregaAdhesion(entregaToDelete.id);
             setIsDeleteEntregaConfirmOpen(false);
             setEntregaToDelete(null);
+        }
+    };
+
+    const handleValidateTicketNumber = () => {
+        if (!selectedEvent || !validationTicketNumber) return;
+        const num = parseInt(validationTicketNumber, 10);
+        if (isNaN(num)) {
+            setValidationMessage({ type: 'error', text: 'Por favor, ingrese un número de entrada válido.' });
+            return;
+        }
+
+        const eventEntregas = entregasAdhesiones.filter(e => String(e.eventoId) === String(selectedEvent.id));
+        let foundEntrega = null;
+        for (const entrega of eventEntregas) {
+            const numbersList = parseNumeros(entrega.numerosEntradas);
+            if (numbersList.includes(num)) {
+                foundEntrega = entrega;
+                break;
+            }
+        }
+
+        if (!foundEntrega) {
+            setValidationMessage({ type: 'error', text: `La entrada #${num} no se encontró en ninguna entrega registrada.` });
+            setValidationEntrega(null);
+            return;
+        }
+
+        const enteredList = parseNumeros(foundEntrega.entradasIngresadas);
+        if (enteredList.includes(num)) {
+            setValidationMessage({ type: 'info', text: `¡Esta entrada (#${num}) ya fue registrada como INGRESADA previamente!` });
+            setValidationEntrega(null);
+            return;
+        }
+
+        const precioVenta = selectedEvent.precioVentaUnitario || 0;
+        const totalAbonar = foundEntrega.cantidadEntradas * precioVenta;
+        const pagosE = pagosAdhesiones.filter(p => String(p.entregaAdhesionId) === String(foundEntrega.id));
+        const totalPagado = pagosE.reduce((sum, p) => sum + p.monto, 0);
+        const saldoPendiente = totalAbonar - totalPagado;
+
+        setValidationEntrega({ ...foundEntrega, saldoPendiente, numTarget: num });
+
+        if (saldoPendiente > 0) {
+            setValidationMessage({ type: 'warning', text: `Aún no pagó. Saldo pendiente de la entrega: ${formatCurrency(saldoPendiente)}.` });
+            setValidationPaymentMonto(String(saldoPendiente));
+        } else {
+            setValidationMessage({ type: 'success', text: `Totalmente pagada. ¡Puede ingresar!` });
+        }
+    };
+
+    const handleRegisterTicketEntry = async () => {
+        if (!validationEntrega) return;
+        
+        try {
+            const existingEntered = validationEntrega.entradasIngresadas ? validationEntrega.entradasIngresadas + ', ' : '';
+            const newEnteredStr = existingEntered + validationEntrega.numTarget;
+
+            await updateEntregaAdhesion({ ...validationEntrega, entradasIngresadas: newEnteredStr });
+
+            setValidationMessage({ type: 'success', text: `¡Ingreso registrado para la entrada #${validationEntrega.numTarget}! Puede buscar la siguiente.` });
+            setValidationEntrega(null);
+            setValidationTicketNumber('');
+            
+            setTimeout(() => {
+                document.getElementById('ticketValidationInput')?.focus();
+            }, 100);
+        } catch (error: any) {
+            console.error(error);
+            setValidationMessage({ type: 'error', text: 'Error al registrar ingreso. Por favor, reinicie la terminal del servidor (npm run dev).' });
+        }
+    };
+
+    const handleRegisterTicketPayment = async () => {
+        if (!validationEntrega || !selectedEvent) return;
+        const montoNum = Number(validationPaymentMonto);
+        
+        if (montoNum > 0) {
+            await addPagoAdhesion({
+                entregaAdhesionId: validationEntrega.id,
+                eventoId: selectedEvent.id,
+                monto: montoNum,
+                fechaPago: new Date().toISOString().split('T')[0],
+                registradoPor: user?.nombre || 'Administrador',
+                notas: 'Pago rápido en acceso'
+            });
+            setValidationMessage({ type: 'success', text: `Pago registrado. Puede ingresar. Clic en "Registrar Ingreso".` });
+            setValidationEntrega({ ...validationEntrega, saldoPendiente: validationEntrega.saldoPendiente - montoNum });
+            setValidationPaymentMonto('');
         }
     };
 
@@ -786,7 +881,17 @@ const Eventos: React.FC = () => {
                                                 <span className={`font-bold ${totalAdhSaldo > 0 ? 'text-red-400' : 'text-green-400'}`}>{formatCurrency(totalAdhSaldo)}</span>
                                             </div>
                                         </div>
-                                        <div className="pt-1.5 border-t border-border/30">
+                                        <div className="pt-1.5 border-t border-border/30 flex flex-col gap-2">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedEvent(evento);
+                                                    setIsValidationModalOpen(true);
+                                                }}
+                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 shadow transition"
+                                            >
+                                                <CheckCircleIcon className="w-3.5 h-3.5" /> Validar y Registrar Ingreso
+                                            </button>
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -1826,6 +1931,121 @@ const Eventos: React.FC = () => {
 
                         <div className="flex justify-end pt-4 border-t border-border no-print">
                             <button onClick={() => setIsReportModalOpen(false)} className="bg-gray-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-gray-700">Cerrar Reporte</button>
+                        </div>
+                    </div>
+                </Modal>
+            )}
+
+            {isValidationModalOpen && selectedEvent && (
+                <Modal 
+                    isOpen={isValidationModalOpen} 
+                    onClose={() => {
+                        setIsValidationModalOpen(false);
+                        setValidationTicketNumber('');
+                        setValidationMessage(null);
+                        setValidationEntrega(null);
+                        setValidationPaymentMonto('');
+                    }} 
+                    title="Validar y Registrar Ingreso"
+                >
+                    <div className="space-y-4">
+                        <div className="bg-background/50 p-4 rounded-lg border border-border">
+                            <label className="block text-sm font-medium mb-2 text-text-primary">Número de Entrada a Validar:</label>
+                            <div className="flex gap-2">
+                                <input 
+                                    id="ticketValidationInput"
+                                    type="number" 
+                                    autoFocus
+                                    value={validationTicketNumber}
+                                    onChange={(e) => setValidationTicketNumber(e.target.value)}
+                                    placeholder="Ej: 105"
+                                    className="flex-1 px-4 py-3 bg-surface border border-border rounded-lg focus:ring-2 focus:ring-blue-500 font-bold text-lg"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleValidateTicketNumber();
+                                    }}
+                                />
+                                <button 
+                                    onClick={handleValidateTicketNumber}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg"
+                                >
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+
+                        {validationMessage && (
+                            <div className={`p-4 rounded-lg border font-bold ${
+                                validationMessage.type === 'error' ? 'bg-red-500/20 border-red-500/50 text-red-400' :
+                                validationMessage.type === 'info' ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-400' :
+                                validationMessage.type === 'warning' ? 'bg-orange-500/20 border-orange-500/50 text-orange-400' :
+                                'bg-green-500/20 border-green-500/50 text-green-400'
+                            }`}>
+                                {validationMessage.text}
+                            </div>
+                        )}
+
+                        {validationEntrega && (
+                            <div className="bg-surface p-4 rounded-lg border border-border shadow-sm space-y-3">
+                                <div>
+                                    <span className="text-xs text-text-secondary uppercase font-bold block mb-1">Nombre a quien se entregó:</span>
+                                    <span className="text-lg font-black text-text-primary">{validationEntrega.nombrePersona}</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <span className="text-[10px] text-text-secondary uppercase font-bold block">Total Entradas Asignadas</span>
+                                        <span className="font-bold text-gray-300">{validationEntrega.cantidadEntradas} (Nros: {validationEntrega.numerosEntradas || '-'})</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] text-text-secondary uppercase font-bold block">Saldo Pendiente Restante</span>
+                                        <span className={`font-black ${validationEntrega.saldoPendiente > 0 ? 'text-red-400' : 'text-green-400'}`}>{formatCurrency(validationEntrega.saldoPendiente)}</span>
+                                    </div>
+                                </div>
+
+                                {validationEntrega.saldoPendiente > 0 ? (
+                                    <div className="pt-3 border-t border-border mt-3">
+                                        <label className="text-xs font-bold text-text-secondary mb-2 block">Registrar Pago Rápido:</label>
+                                        <div className="flex gap-2">
+                                            <input 
+                                                type="number" 
+                                                value={validationPaymentMonto}
+                                                onChange={(e) => setValidationPaymentMonto(e.target.value)}
+                                                className="flex-1 px-3 py-2 bg-background border border-border rounded-md focus:ring-1 focus:ring-orange-500 font-bold"
+                                                placeholder="Monto a pagar"
+                                            />
+                                            <button 
+                                                onClick={handleRegisterTicketPayment}
+                                                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-bold shadow"
+                                            >
+                                                Cobrar Pago
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="pt-4 flex justify-end">
+                                        <button 
+                                            onClick={handleRegisterTicketEntry}
+                                            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-black text-lg shadow-lg w-full flex justify-center items-center gap-2"
+                                        >
+                                            <CheckCircleIcon className="w-6 h-6" /> REGISTRAR INGRESO
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="flex justify-end pt-4 border-t border-border/50">
+                            <button 
+                                onClick={() => {
+                                    setIsValidationModalOpen(false);
+                                    setValidationTicketNumber('');
+                                    setValidationMessage(null);
+                                    setValidationEntrega(null);
+                                    setValidationPaymentMonto('');
+                                }} 
+                                className="bg-gray-700 hover:bg-gray-600 text-white px-5 py-2.5 rounded-lg font-bold transition"
+                            >
+                                Cerrar
+                            </button>
                         </div>
                     </div>
                 </Modal>

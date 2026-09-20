@@ -181,6 +181,7 @@ export interface EntregaAdhesion {
   servidorId?: string;
   cantidadEntradas: number;
   numerosEntradas?: string;
+  entradasIngresadas?: string;
   precioVentaUnitario: number;
   costoTotal: number;
   notas?: string;

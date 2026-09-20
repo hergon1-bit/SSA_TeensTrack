@@ -192,6 +192,7 @@ model EntregaAdhesion {
   servidor            Servidor?    @relation(fields: [servidorId], references: [id])
   cantidadEntradas    Int
   numerosEntradas     String?
+  entradasIngresadas  String?
   precioVentaUnitario Float
   costoTotal          Float
   notas               String?
