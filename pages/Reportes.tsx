@@ -51,6 +51,19 @@ const Reportes: React.FC = () => {
         return `${day}/${month}/${year}`;
     };
 
+    const getUltimaAsistencia = (adolescenteId: string | number) => {
+        const asistenciasAdolescente = asistencias.filter(a => String(a.adolescenteId) === String(adolescenteId) && a.estado === 'Presente');
+        if (asistenciasAdolescente.length === 0) return '-';
+        
+        const reunionIds = asistenciasAdolescente.map(a => String(a.reunionId));
+        const reunionesAsistidas = reuniones.filter(r => reunionIds.includes(String(r.id)) && r.fecha);
+        
+        if (reunionesAsistidas.length === 0) return '-';
+        
+        const sortedReuniones = reunionesAsistidas.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+        return formatDate(sortedReuniones[0].fecha);
+    };
+
     const reportData = useMemo(() => {
         switch (activeReport) {
             case 'cumpleanos':
@@ -574,6 +587,9 @@ const Reportes: React.FC = () => {
                                         <th className="p-4">Edad</th>
                                         <th className="p-4">Ciudad / Barrio</th>
                                         <th className="p-4">Teléfono</th>
+                                        {activeReport === 'activos' && (
+                                            <th className="p-4">Ultima Asistencia</th>
+                                        )}
                                     </>
                                 )}
                             </tr>
@@ -683,6 +699,9 @@ const Reportes: React.FC = () => {
                                     <td className="p-4 font-medium">{calcularEdad(a.fechaNacimiento)} años</td>
                                     <td className="p-4 text-text-secondary text-xs">{a.ciudad} {a.barrio ? `/ ${a.barrio}` : ''}</td>
                                     <td className="p-4 text-text-secondary text-xs">{a.telefono || '-'}</td>
+                                    {activeReport === 'activos' && (
+                                        <td className="p-4 text-text-secondary font-mono text-xs whitespace-nowrap">{getUltimaAsistencia(a.id)}</td>
+                                    )}
                                 </tr>
                             )})}
                         </tbody>
