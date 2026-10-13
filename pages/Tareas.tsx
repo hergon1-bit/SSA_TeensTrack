@@ -7,6 +7,7 @@ import ConfirmationModal from '../components/ui/ConfirmationModal';
 import { useForm } from '../hooks/useForm';
 import { formatDate } from '../utils/helpers';
 import { BookOpenIcon, CheckCircleIcon, TrashIcon, PencilIcon, RefreshIcon, BarChartIcon, TrophyIcon, UsersIcon, CalendarDaysIcon } from '../components/ui/Icons';
+import DateInput from '../components/ui/DateInput';
 
 type Tab = 'dashboard' | 'registro' | 'gestion' | 'historial';
 
@@ -485,11 +486,10 @@ const Tareas: React.FC = () => {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-text-secondary mb-1">Fecha de Devolución</label>
-                                    <input 
-                                        type="date" 
+                                    <DateInput 
                                         value={fechaEntrega} 
                                         onChange={(e) => setFechaEntrega(e.target.value)}
-                                        className="w-full bg-background border border-border rounded-md p-2 outline-none focus:ring-2 focus:ring-primary"
+                                        className="w-full"
                                     />
                                 </div>
                                 <div>
@@ -632,20 +632,18 @@ const Tareas: React.FC = () => {
                         </div>
                         <div>
                             <label className="block text-xs font-medium text-text-secondary mb-1">Desde</label>
-                            <input 
-                                type="date" 
+                            <DateInput 
                                 value={filterDateStart}
                                 onChange={(e) => setFilterDateStart(e.target.value)}
-                                className="w-full bg-background border border-border rounded-md p-2 text-sm outline-none"
+                                className="w-full text-sm"
                             />
                         </div>
                         <div>
                             <label className="block text-xs font-medium text-text-secondary mb-1">Hasta</label>
-                            <input 
-                                type="date" 
+                            <DateInput 
                                 value={filterDateEnd}
                                 onChange={(e) => setFilterDateEnd(e.target.value)}
-                                className="w-full bg-background border border-border rounded-md p-2 text-sm outline-none"
+                                className="w-full text-sm"
                             />
                         </div>
                         <div>
@@ -714,11 +712,11 @@ const Tareas: React.FC = () => {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-text-secondary">Fecha Distribución</label>
-                            <input type="date" name="fechaDistribucion" value={values.fechaDistribucion} onChange={handleInputChange} required className="mt-1 block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+                            <DateInput name="fechaDistribucion" value={values.fechaDistribucion} onChange={handleInputChange} required className="mt-1" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-text-secondary">Fecha Vencimiento</label>
-                            <input type="date" name="fechaVencimiento" value={values.fechaVencimiento} onChange={handleInputChange} required className="mt-1 block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+                            <DateInput name="fechaVencimiento" value={values.fechaVencimiento} onChange={handleInputChange} required className="mt-1" />
                         </div>
                     </div>
                     <div className="flex justify-end space-x-2 pt-4">
@@ -752,11 +750,10 @@ const Tareas: React.FC = () => {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-text-secondary">Fecha Entrega</label>
-                        <input 
-                            type="date" 
+                        <DateInput 
                             value={editSubmissionValues.fechaEntrega} 
                             onChange={(e) => setEditSubmissionValues({...editSubmissionValues, fechaEntrega: e.target.value})}
-                            className="w-full bg-background border border-border rounded-md p-2 outline-none focus:ring-2 focus:ring-primary"
+                            className="w-full"
                         />
                     </div>
                     <div>

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { TemaClase, MaterialAdjunto } from '../types';
+import { formatDate } from '../utils/helpers';
 import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
 import { 
@@ -10,6 +11,7 @@ import {
   Trash2, Edit, ExternalLink, Download, Layers, Check, Sparkles, Filter,
   Globe, Brain, Video
 } from 'lucide-react';
+import DateInput from '../components/ui/DateInput';
 
 const PlanClases: React.FC = () => {
   const { temasClases, encargados, addTemaClase, updateTemaClase, deleteTemaClase } = useData();
@@ -606,7 +608,7 @@ const PlanClases: React.FC = () => {
                           {tema.desarrollado && tema.fechaDesarrollo && (
                             <span className="flex items-center gap-1 text-emerald-600 font-medium">
                               <Calendar className="w-3.5 h-3.5" />
-                              Desarrollado el: {tema.fechaDesarrollo}
+                              Desarrollado el: {formatDate(tema.fechaDesarrollo)}
                             </span>
                           )}
 
@@ -620,7 +622,7 @@ const PlanClases: React.FC = () => {
                           {tema.fechaProgramada && (
                             <span className="flex items-center gap-1 text-indigo-600 font-medium">
                               <Calendar className="w-3.5 h-3.5" />
-                              Clase programada: {tema.fechaProgramada}
+                              Clase programada: {formatDate(tema.fechaProgramada)}
                             </span>
                           )}
 
@@ -799,7 +801,7 @@ const PlanClases: React.FC = () => {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="bg-primary/10 text-primary font-bold text-xs px-2.5 py-1 rounded-md">
-                            {tema.fechaProgramada}
+                            {formatDate(tema.fechaProgramada)}
                           </span>
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                             tema.desarrollado ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
@@ -959,11 +961,10 @@ const PlanClases: React.FC = () => {
                     <label className="block text-xs font-medium text-text-secondary mb-1">
                       Fecha de Desarrollo
                     </label>
-                    <input
-                      type="date"
+                    <DateInput
                       value={editingTema.fechaDesarrollo || ''}
                       onChange={(e) => setEditingTema(prev => ({ ...prev, fechaDesarrollo: e.target.value }))}
-                      className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm text-text-primary"
+                      className="w-full text-sm"
                     />
                   </div>
 
@@ -993,11 +994,10 @@ const PlanClases: React.FC = () => {
               <label className="block text-sm font-medium text-text-secondary mb-1">
                 Fecha Programada de la Clase (Calendario)
               </label>
-              <input
-                type="date"
+              <DateInput
                 value={editingTema.fechaProgramada || ''}
                 onChange={(e) => setEditingTema(prev => ({ ...prev, fechaProgramada: e.target.value }))}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                className="w-full text-sm"
               />
               <span className="text-xs text-text-secondary mt-1 block">
                 Opcional. Asigna una fecha para fijar la clase en el calendario.
@@ -1283,7 +1283,7 @@ const PlanClases: React.FC = () => {
 
               {selectedTemaDetail.fechaProgramada && (
                 <span className="text-xs bg-indigo-500/10 text-indigo-600 px-2.5 py-1 rounded-full font-medium border border-indigo-500/20">
-                  📅 Programado para: {selectedTemaDetail.fechaProgramada}
+                  📅 Programado para: {formatDate(selectedTemaDetail.fechaProgramada)}
                 </span>
               )}
             </div>
@@ -1295,7 +1295,7 @@ const PlanClases: React.FC = () => {
                   <p>👤 <strong>Encargado desarrollador:</strong> {getEncargadoNombre(selectedTemaDetail.encargadoId)}</p>
                 )}
                 {selectedTemaDetail.fechaDesarrollo && (
-                  <p>📅 <strong>Fecha de desarrollo:</strong> {selectedTemaDetail.fechaDesarrollo}</p>
+                  <p>📅 <strong>Fecha de desarrollo:</strong> {formatDate(selectedTemaDetail.fechaDesarrollo)}</p>
                 )}
               </div>
             )}

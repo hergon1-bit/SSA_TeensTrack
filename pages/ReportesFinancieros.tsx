@@ -462,7 +462,8 @@ const ReportesFinancieros: React.FC = () => {
         doc.setFontSize(12);
         doc.setTextColor(100);
         doc.text(`Evento: ${event?.tema}`, 14, 25);
-        doc.text(`Fecha del Informe: ${new Date().toLocaleString()}`, 14, 32);
+        const reportNow = new Date();
+        doc.text(`Fecha del Informe: ${formatDate(reportNow)} ${reportNow.toLocaleTimeString('es-PY')}`, 14, 32);
 
         // Para el PDF, listamos todos los pagos individuales para transparencia
         const tableData: any[] = [];

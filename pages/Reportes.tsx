@@ -7,7 +7,7 @@ import { RefreshIcon, PrinterIcon, UsersIcon, CalendarDaysIcon, ClipboardListIco
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-type ReportType = 'cumpleanos' | 'asistenciaReunion' | 'ausencias' | 'activos' | 'adolescentesTutores' | 'tutores' | 'documentos' | 'asistenciaTeensPro' | 'primeraVez';
+type ReportType = 'cumpleanos' | 'asistenciaReunion' | 'ausencias' | 'activos' | 'adolescentesTutores' | 'tutores' | 'documentos' | 'asistenciaTeensPro' | 'primeraVez' | 'asistenciaAnual';
 type DocumentFilter = 'Todos' | 'Ficha Pendiente' | 'Ficha Entregada' | 'Autorización Pendiente' | 'Autorización Entregada' | 'Todo Entregado' | 'Todo Pendiente';
 
 const Reportes: React.FC = () => {
@@ -21,9 +21,10 @@ const Reportes: React.FC = () => {
     const [filter15OrOlder, setFilter15OrOlder] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    // Filtros para reporte de Primera Vez
+    // Filtros para reporte de Asistencia Anual y Primera Vez
     const [filterMonth, setFilterMonth] = useState<number>(new Date().getMonth() + 1);
     const [filterYear, setFilterYear] = useState<number>(new Date().getFullYear());
+    const [filterYearAsistencia, setFilterYearAsistencia] = useState<number>(new Date().getFullYear());
 
     useEffect(() => {
         const loadFreshData = async () => {
@@ -193,12 +194,33 @@ const Reportes: React.FC = () => {
                     .filter(a => primeraVezAdoIds.has(String(a.id)))
                     .sort((a, b) => a.nombre.localeCompare(b.nombre));
 
+            case 'asistenciaAnual':
+                return adolescentes
+                    .filter(a => a.estado === 'Activo')
+                    .slice()
+                    .sort((a, b) => {
+                        const nameA = `${a.nombre} ${a.apellido}`.trim().toLowerCase();
+                        const nameB = `${b.nombre} ${b.apellido}`.trim().toLowerCase();
+                        return nameA.localeCompare(nameB);
+                    });
+
             default: return [];
         }
     }, [activeReport, adolescentes, reuniones, asistencias, selectedReunionId, tutores, tutoresAdolescentes, docFilter, filterTeensProAtLeastOne, filter15OrOlder, filterMonth, filterYear]);
 
+    // Reuniones filtradas para el reporte de asistencia anual (ordenadas cronológicamente)
+    const reunionesAnuales = useMemo(() => {
+        return reuniones
+            .filter(r => {
+                if (!r.fecha) return false;
+                const rYear = parseInt(r.fecha.split('-')[0], 10);
+                return rYear === filterYearAsistencia;
+            })
+            .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+    }, [reuniones, filterYearAsistencia]);
+
     const handlePrint = () => {
-        const doc = new jsPDF();
+        const doc = new jsPDF(activeReport === 'asistenciaAnual' ? 'landscape' : 'portrait');
         const title = activeReport === 'cumpleanos' ? 'CUMPLEAÑOS DEL MES' :
                       activeReport === 'asistenciaReunion' ? 'ASISTENCIA POR REUNIÓN' :
                       activeReport === 'ausencias' ? 'ALERTA DE AUSENCIAS' : 
@@ -206,12 +228,14 @@ const Reportes: React.FC = () => {
                       activeReport === 'tutores' ? 'LISTADO DE TUTORES' : 
                       activeReport === 'documentos' ? 'ESTADO DE DOCUMENTACIÓN' : 
                       activeReport === 'asistenciaTeensPro' ? 'ASISTENCIA TEENSPRO' : 
+                      activeReport === 'asistenciaAnual' ? `SEGUIMIENTO DE ASISTENCIA ANUAL (${filterYearAsistencia})` :
                       activeReport === 'primeraVez' ? `PRIMERA VEZ (${String(filterMonth).padStart(2, '0')}/${filterYear})` : 'LISTA DE ACTIVOS';
         
         doc.setFontSize(16);
         doc.text(`Reporte de Seguimiento: ${title}`, 14, 15);
         doc.setFontSize(10);
-        doc.text(`Generado el: ${new Date().toLocaleString()}`, 14, 22);
+        const reportNow = new Date();
+        doc.text(`Generado el: ${formatDate(reportNow)} ${reportNow.toLocaleTimeString('es-PY')}`, 14, 22);
 
         if (activeReport === 'asistenciaReunion' && selectedReunionId) {
             const reu = reuniones.find(r => r.id === selectedReunionId);
@@ -236,11 +260,21 @@ const Reportes: React.FC = () => {
             ? [['Nombre', 'Fecha Nacimiento', 'Reg. Salud', 'Edad', 'Barrio', 'Teléfono']]
             : activeReport === 'asistenciaTeensPro'
             ? [['Nombre y Apellido', ...reuniones.filter(r => r.esTeensPro).sort((a,b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime()).map((_, index) => `ID TEEN ${index + 1}`)]]
+            : activeReport === 'asistenciaAnual'
+            ? [['Nombre y Apellido', ...reunionesAnuales.map(r => formatDate(r.fecha))]]
             : activeReport === 'asistenciaReunion'
             ? [['Nombre', 'Reg. Salud', 'Edad', 'Barrio', 'Teléfono']]
             : [['Nombre', 'Cédula CI', 'Reg. Salud', 'Edad', 'Barrio', 'Teléfono']];
 
         const tableData = reportData.map((item: any) => {
+            if (activeReport === 'asistenciaAnual') {
+                const row = [`${item.nombre} ${item.apellido}`];
+                reunionesAnuales.forEach(reu => {
+                    const asistencia = asistencias.find(asis => String(asis.reunionId) === String(reu.id) && String(asis.adolescenteId) === String(item.id));
+                    row.push(asistencia?.estado === 'Presente' ? '1' : '0');
+                });
+                return row;
+            }
             if (activeReport === 'asistenciaTeensPro') {
                 const teensProReus = reuniones.filter(r => r.esTeensPro).sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
                 const row = [`${item.nombre} ${item.apellido}`];
@@ -374,6 +408,31 @@ const Reportes: React.FC = () => {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        } else if (activeReport === 'asistenciaAnual') {
+            const escapeCsv = (str: string) => `"${String(str).replace(/"/g, '""')}"`;
+            const headers = ['Nombre y Apellido', ...reunionesAnuales.map(r => escapeCsv(formatDate(r.fecha)))];
+            const csvRows = [];
+            csvRows.push(headers.join(','));
+
+            reportData.forEach((item: any) => {
+                const row = [escapeCsv(`${item.nombre} ${item.apellido}`)];
+                reunionesAnuales.forEach(reu => {
+                    const asistencia = asistencias.find(asis => String(asis.reunionId) === String(reu.id) && String(asis.adolescenteId) === String(item.id));
+                    row.push(asistencia?.estado === 'Presente' ? '1' : '0');
+                });
+                csvRows.push(row.join(','));
+            });
+
+            const csvString = csvRows.join('\n');
+            const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Asistencia_Anual_${filterYearAsistencia}_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     };
 
@@ -382,7 +441,7 @@ const Reportes: React.FC = () => {
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold">Reportes de Seguimiento</h1>
                 <div className="flex gap-2">
-                    {(activeReport === 'activos' || activeReport === 'asistenciaTeensPro' || activeReport === 'primeraVez') && (
+                    {(activeReport === 'activos' || activeReport === 'asistenciaTeensPro' || activeReport === 'primeraVez' || activeReport === 'asistenciaAnual') && (
                         <button 
                             onClick={handleExportExcel} 
                             className="bg-green-600 border border-green-700 p-2 rounded-lg text-white hover:bg-green-700 transition-colors flex items-center gap-2 text-sm font-medium px-4"
@@ -433,7 +492,35 @@ const Reportes: React.FC = () => {
                 <button onClick={() => setActiveReport('asistenciaTeensPro')} className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition ${activeReport === 'asistenciaTeensPro' ? 'bg-primary text-white shadow-md' : 'bg-surface border border-border text-text-secondary hover:bg-background'}`}>
                     <ClipboardListIcon className="w-4 h-4" /> Asistencia TeensPro
                 </button>
+                <button onClick={() => setActiveReport('asistenciaAnual')} className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition ${activeReport === 'asistenciaAnual' ? 'bg-primary text-white shadow-md' : 'bg-surface border border-border text-text-secondary hover:bg-background'}`}>
+                    <CalendarDaysIcon className="w-4 h-4" /> Asistencia Anual
+                </button>
             </div>
+
+            {activeReport === 'asistenciaAnual' && (
+                <div className="bg-surface p-4 rounded-lg border border-border flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm font-bold text-text-primary">Año de Seguimiento:</span>
+                        <select 
+                            value={filterYearAsistencia} 
+                            onChange={(e) => setFilterYearAsistencia(Number(e.target.value))}
+                            className="bg-background border border-border px-3 py-1.5 rounded-md text-sm text-text-primary font-bold focus:ring-2 ring-primary outline-none"
+                        >
+                            {[...Array(6)].map((_, i) => {
+                                const y = new Date().getFullYear() - 3 + i;
+                                return <option key={y} value={y}>{y}</option>;
+                            })}
+                        </select>
+                    </div>
+                    <div className="text-xs text-text-secondary flex items-center gap-4">
+                        <span>Total de reuniones en {filterYearAsistencia}: <strong className="text-text-primary">{reunionesAnuales.length}</strong></span>
+                        <div className="flex items-center gap-3">
+                            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span> 1 = Presente</span>
+                            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span> 0 = Ausente</span>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {activeReport === 'primeraVez' && (
                 <div className="bg-surface p-4 rounded-lg border border-border flex flex-wrap items-center gap-4">
@@ -540,9 +627,9 @@ const Reportes: React.FC = () => {
                     </div>
                 )}
 
-                <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm text-left">
-                        <thead className="bg-background text-text-secondary uppercase text-[10px] font-black tracking-widest">
+                <div className="overflow-x-auto custom-scrollbar pb-3 max-h-[70vh] overflow-y-auto border border-border/50 rounded-lg">
+                    <table className="min-w-full text-sm text-left border-collapse">
+                        <thead className="bg-surface sticky top-0 z-20 text-text-secondary uppercase text-[10px] font-black tracking-widest shadow-sm">
                             <tr>
                                 {activeReport === 'adolescentesTutores' ? (
                                     <>
@@ -566,6 +653,15 @@ const Reportes: React.FC = () => {
                                         <th className="p-4">Ficha Inscripción</th>
                                         <th className="p-4">Autorización</th>
                                         <th className="p-4">Estado Documentación</th>
+                                    </>
+                                ) : activeReport === 'asistenciaAnual' ? (
+                                    <>
+                                        <th className="p-4 bg-surface sticky left-0 z-30 border-r border-border min-w-[220px] shadow-sm">Nombre y Apellido</th>
+                                        {reunionesAnuales.map((reu) => (
+                                            <th key={reu.id} className="p-3 whitespace-nowrap text-center text-xs font-mono font-bold bg-surface">
+                                                <div title={reu.tema || undefined}>{formatDate(reu.fecha)}</div>
+                                            </th>
+                                        ))}
                                     </>
                                 ) : activeReport === 'asistenciaTeensPro' ? (
                                     <>
@@ -663,6 +759,30 @@ const Reportes: React.FC = () => {
                                     );
                                 }
                                 
+                                if (activeReport === 'asistenciaAnual') {
+                                    const a = item as Adolescente;
+                                    return (
+                                        <tr key={a.id} className="hover:bg-background/40 transition-colors group">
+                                            <td className="p-4 font-bold text-text-primary group-hover:text-primary bg-surface sticky left-0 z-10 border-r border-border min-w-[220px]">
+                                                {a.nombre} {a.apellido}
+                                            </td>
+                                            {reunionesAnuales.map(reu => {
+                                                const asistencia = asistencias.find(asis => String(asis.reunionId) === String(reu.id) && String(asis.adolescenteId) === String(a.id));
+                                                const isPresent = asistencia?.estado === 'Presente';
+                                                return (
+                                                    <td key={reu.id} className="p-3 text-center font-mono">
+                                                        {isPresent ? (
+                                                            <span className="text-green-500 font-black text-sm">1</span>
+                                                        ) : (
+                                                            <span className="text-red-500 font-bold text-sm">0</span>
+                                                        )}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    );
+                                }
+
                                 if (activeReport === 'asistenciaTeensPro') {
                                     const a = item as Adolescente;
                                     const teensProReus = reuniones.filter(r => r.esTeensPro).sort((ra, rb) => new Date(ra.fecha).getTime() - new Date(rb.fecha).getTime());

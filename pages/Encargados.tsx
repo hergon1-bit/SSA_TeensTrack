@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Encargado } from '../types';
 import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
+import { DateInput } from '../components/ui/DateInput';
 import { useForm } from '../hooks/useForm';
 import { formatDate } from '../utils/helpers';
 import { RefreshIcon } from '../components/ui/Icons';
@@ -164,7 +165,12 @@ const Encargados: React.FC = () => {
                                     <div className="text-sm font-medium text-text-primary">{enc.nombre} {enc.apellido}</div>
                                     <div className="text-xs text-text-secondary uppercase">{enc.ciudad}</div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary font-mono">{enc.cedula}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
+                                    <div className="font-mono">{enc.cedula}</div>
+                                    {enc.fechaNacimiento && (
+                                        <div className="text-[11px] text-text-secondary">Fec. Nac: {formatDate(enc.fechaNacimiento)}</div>
+                                    )}
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">{enc.email || 'N/A'}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">{enc.telefono}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
@@ -197,6 +203,12 @@ const Encargados: React.FC = () => {
                                 <p className="text-text-secondary font-medium">Teléfono</p>
                                 <p className="text-text-primary font-bold">{enc.telefono || 'N/A'}</p>
                             </div>
+                            {enc.fechaNacimiento && (
+                                <div className="col-span-2">
+                                    <p className="text-text-secondary font-medium">Fecha de Nacimiento</p>
+                                    <p className="text-text-primary font-mono">{formatDate(enc.fechaNacimiento)}</p>
+                                </div>
+                            )}
                             <div className="col-span-2">
                                 <p className="text-text-secondary font-medium">Email</p>
                                 <p className="text-text-primary break-all">{enc.email || 'N/A'}</p>
@@ -299,10 +311,21 @@ const Encargados: React.FC = () => {
     );
 };
 
-const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
+const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, type, ...props }) => (
     <div>
         <label htmlFor={props.name} className="block text-sm font-medium text-text-secondary mb-1">{label}</label>
-        <input {...props} id={props.name} className="block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-primary disabled:opacity-50 transition-all sm:text-sm" />
+        {type === 'date' ? (
+            <DateInput
+                id={props.name}
+                name={props.name}
+                value={String(props.value || '')}
+                onChange={props.onChange as any}
+                required={props.required}
+                disabled={props.disabled}
+            />
+        ) : (
+            <input {...props} id={props.name} type={type} className="block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-primary disabled:opacity-50 transition-all sm:text-sm" />
+        )}
     </div>
 );
 

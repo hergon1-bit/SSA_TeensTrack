@@ -9,6 +9,7 @@ import {
   Plus, CheckCircle, Search, ExternalLink, Trash2, Calendar, 
   ArrowRight, ShieldCheck, LogOut, ChevronRight, Check
 } from 'lucide-react';
+import DateInput from '../components/ui/DateInput';
 
 type SubTab = 'gmail' | 'tasks' | 'meet' | 'chat';
 
@@ -568,11 +569,10 @@ const Workspace: React.FC = () => {
                       </div>
                       <div>
                         <label className="text-xs font-semibold text-text-secondary block mb-1">Fecha de Vencimiento (Due Date)</label>
-                        <input
-                          type="date"
+                        <DateInput
                           value={newTaskDue}
                           onChange={(e) => setNewTaskDue(e.target.value)}
-                          className="w-full bg-surface border border-border px-3 py-2 rounded-lg text-xs text-text-primary focus:outline-none focus:border-primary transition-colors"
+                          className="w-full text-xs"
                         />
                       </div>
                       <button

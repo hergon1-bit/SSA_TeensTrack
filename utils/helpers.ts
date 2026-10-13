@@ -88,7 +88,7 @@ export const calcularProximoCumpleanos = (fechaNacimiento: string): Date => {
   return proximoCumple;
 };
 
-export const formatDate = (date: Date | string) => {
+export const formatDate = (date?: Date | string | null) => {
   if (!date) return 'N/A';
   
   const dateStr = typeof date === 'string' ? date.trim() : '';

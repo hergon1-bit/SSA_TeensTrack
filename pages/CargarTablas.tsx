@@ -4,7 +4,7 @@ import { useData } from '../contexts/DataContext';
 import { Adolescente, Encargado, Reunion, Tutor, Asistencia, TipoAsistencia, AsistenciaDetalle, GradoParentesco } from '../types';
 import { UploadCloudIcon, RefreshIcon, CheckCircleIcon, CalculatorIcon, EyeIcon } from '../components/ui/Icons';
 import { api } from '../services/api';
-import { calcularEdad } from '../utils/helpers';
+import { calcularEdad, formatDate } from '../utils/helpers';
 
 type EntityType = 'adolescentes' | 'encargados' | 'reuniones' | 'tutores' | 'asistencias';
 
@@ -86,7 +86,7 @@ const CargarTablas: React.FC = () => {
 
             if (!nombre || !apellido || !cedula || !fechaNacimiento) return { data: rawData, isValid: false, error: 'Faltan campos obligatorios.' };
             if (existingCedulas.adolescentes.has(cedula) || cedulasInFile.has(cedula)) return { data: rawData, isValid: false, error: `Cédula '${cedula}' duplicada.` };
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaNacimiento)) return { data: rawData, isValid: false, error: `Formato de fecha inválido. Usar AAAA-MM-DD.`};
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaNacimiento)) return { data: rawData, isValid: false, error: `Formato de fecha inválido. Usar DD/MM/AAAA o AAAA-MM-DD.`};
             
             cedulasInFile.add(cedula);
             return {
@@ -346,17 +346,17 @@ const CargarTablas: React.FC = () => {
         adolescentes: {
             title: 'Adolescentes',
             instructions: <ol className="list-decimal list-inside space-y-1">
-                <li>Nombre (Requerido)</li><li>Apellido (Requerido)</li><li>Cédula (Requerido, único)</li><li>Fecha Nacimiento (Requerido, AAAA-MM-DD)</li><li>Barrio</li><li>Ciudad</li><li>Teléfono</li><li>Sexo ('Masculino' o 'Femenino')</li><li>Estado ('Activo', 'Inactivo', o 'Anulado')</li>
+                <li>Nombre (Requerido)</li><li>Apellido (Requerido)</li><li>Cédula (Requerido, único)</li><li>Fecha Nacimiento (Requerido, DD/MM/AAAA o AAAA-MM-DD)</li><li>Barrio</li><li>Ciudad</li><li>Teléfono</li><li>Sexo ('Masculino' o 'Femenino')</li><li>Estado ('Activo', 'Inactivo', o 'Anulado')</li>
             </ol>,
             previewHeaders: ['Nombre', 'Cédula', 'Fecha Nac.', 'Estado', 'Validación', 'Observación'],
             renderRow: (row: ParsedRow, index: number) => <tr key={index} className={`border-t border-border ${!row.isValid ? 'bg-red-900/40' : ''}`}>
-                <td className="p-2">{row.data.nombre || 'N/A'} {row.data.apellido || ''}</td><td className="p-2">{row.data.cedula || 'N/A'}</td><td className="p-2">{row.data.fechaNacimiento || 'N/A'}</td><td className="p-2">{row.data.estado || 'Activo'}</td><td className={`p-2 font-semibold ${!row.isValid ? 'text-red-300' : 'text-green-300'}`}>{row.isValid ? "Válido" : "Error"}</td><td className="p-2 text-yellow-400">{row.error}</td>
+                <td className="p-2">{row.data.nombre || 'N/A'} {row.data.apellido || ''}</td><td className="p-2">{row.data.cedula || 'N/A'}</td><td className="p-2">{row.data.fechaNacimiento ? formatDate(row.data.fechaNacimiento) : 'N/A'}</td><td className="p-2">{row.data.estado || 'Activo'}</td><td className={`p-2 font-semibold ${!row.isValid ? 'text-red-300' : 'text-green-300'}`}>{row.isValid ? "Válido" : "Error"}</td><td className="p-2 text-yellow-400">{row.error}</td>
             </tr>
         },
         encargados: {
             title: 'Encargados',
             instructions: <ol className="list-decimal list-inside space-y-1">
-                <li>Nombre (Requerido)</li><li>Apellido (Requerido)</li><li>Cédula (Requerido, único)</li><li>Fecha Nacimiento (Opcional, AAAA-MM-DD)</li><li>Barrio</li><li>Ciudad</li><li>Teléfono</li><li>Email</li>
+                <li>Nombre (Requerido)</li><li>Apellido (Requerido)</li><li>Cédula (Requerido, único)</li><li>Fecha Nacimiento (Opcional, DD/MM/AAAA o AAAA-MM-DD)</li><li>Barrio</li><li>Ciudad</li><li>Teléfono</li><li>Email</li>
             </ol>,
             previewHeaders: ['Nombre', 'Cédula', 'Email', 'Validación', 'Observación'],
             renderRow: (row: ParsedRow, index: number) => <tr key={index} className={`border-t border-border ${!row.isValid ? 'bg-red-900/40' : ''}`}>
@@ -366,11 +366,11 @@ const CargarTablas: React.FC = () => {
         reuniones: {
             title: 'Reuniones',
             instructions: <ol className="list-decimal list-inside space-y-1">
-                <li>Fecha (Requerido, AAAA-MM-DD)</li><li>Tema (Requerido)</li><li>Cédula del Encargado (Requerido, debe existir)</li><li>Estado (Opcional: 'En Proceso' o 'Finalizado'. Por defecto: 'En Proceso')</li>
+                <li>Fecha (Requerido, DD/MM/AAAA o AAAA-MM-DD)</li><li>Tema (Requerido)</li><li>Cédula del Encargado (Requerido, debe existir)</li><li>Estado (Opcional: 'En Proceso' o 'Finalizado'. Por defecto: 'En Proceso')</li>
             </ol>,
             previewHeaders: ['Tema', 'Fecha', 'CI Encargado', 'Estado', 'Validación', 'Observación'],
             renderRow: (row: ParsedRow, index: number) => <tr key={index} className={`border-t border-border ${!row.isValid ? 'bg-red-900/40' : ''}`}>
-                <td className="p-2">{row.data.tema || 'N/A'}</td><td className="p-2">{row.data.fecha || 'N/A'}</td><td className="p-2">{row.data.encargadoCedula || 'N/A'}</td><td className="p-2">{row.data.estado || 'En Proceso'}</td><td className={`p-2 font-semibold ${!row.isValid ? 'text-red-300' : 'text-green-300'}`}>{row.isValid ? "Válido" : "Error"}</td><td className="p-2 text-yellow-400">{row.error}</td>
+                <td className="p-2">{row.data.tema || 'N/A'}</td><td className="p-2">{row.data.fecha ? formatDate(row.data.fecha) : 'N/A'}</td><td className="p-2">{row.data.encargadoCedula || 'N/A'}</td><td className="p-2">{row.data.estado || 'En Proceso'}</td><td className={`p-2 font-semibold ${!row.isValid ? 'text-red-300' : 'text-green-300'}`}>{row.isValid ? "Válido" : "Error"}</td><td className="p-2 text-yellow-400">{row.error}</td>
             </tr>
         },
         tutores: {
@@ -542,7 +542,7 @@ const CargarTablas: React.FC = () => {
                                             {displayDiagnosis.map(ado => (
                                                 <tr key={ado.id} className={ado.isError ? 'text-red-400 bg-red-900/10' : 'text-text-secondary'}>
                                                     <td className="p-2">{ado.nombre} {ado.apellido}</td>
-                                                    <td className="p-2 font-mono">{ado.fechaNacimiento}</td>
+                                                    <td className="p-2 font-mono">{formatDate(ado.fechaNacimiento)}</td>
                                                     <td className="p-2 font-bold">{ado.edad}</td>
                                                     <td className="p-2">{ado.isError ? 'Error / Formato Inválido' : 'OK'}</td>
                                                 </tr>

@@ -6,6 +6,7 @@ import { Adolescente, Sexo, EstadoAdolescente } from '../types';
 import { calcularEdad, formatDate } from '../utils/helpers';
 import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
+import { DateInput } from '../components/ui/DateInput';
 import { useForm } from '../hooks/useForm';
 import { DownloadCloudIcon, RefreshIcon } from '../components/ui/Icons';
 
@@ -312,7 +313,12 @@ const Adolescentes: React.FC = () => {
                                         <div className="text-sm font-mono text-text-secondary">{ado.cedula}</div>
                                         <div className="text-[10px] text-primary font-bold">REG: {ado.registro || '-'}</div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary font-bold">{calcularEdad(ado.fechaNacimiento)} años</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm text-text-secondary font-bold">{calcularEdad(ado.fechaNacimiento)} años</div>
+                                        {ado.fechaNacimiento && (
+                                            <div className="text-[11px] text-text-secondary font-mono">{formatDate(ado.fechaNacimiento)}</div>
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4">
                                         {adoTutores.length > 0 ? (
                                             <div className="flex flex-col gap-1">
@@ -391,6 +397,9 @@ const Adolescentes: React.FC = () => {
                                 <div>
                                     <p className="text-text-secondary font-medium">Edad</p>
                                     <p className="text-text-primary font-bold">{calcularEdad(ado.fechaNacimiento)} años</p>
+                                    {ado.fechaNacimiento && (
+                                        <p className="text-[10px] text-text-secondary font-mono">({formatDate(ado.fechaNacimiento)})</p>
+                                    )}
                                 </div>
                                 <div>
                                     <p className="text-text-secondary font-medium">Documentos</p>
@@ -559,10 +568,21 @@ const Adolescentes: React.FC = () => {
     );
 };
 
-const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
+const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, type, ...props }) => (
     <div>
         <label htmlFor={props.name} className="block text-sm font-medium text-text-secondary mb-1">{label}</label>
-        <input {...props} id={props.name} className="block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-primary disabled:opacity-50 transition-all sm:text-sm" />
+        {type === 'date' ? (
+            <DateInput
+                id={props.name}
+                name={props.name}
+                value={String(props.value || '')}
+                onChange={props.onChange as any}
+                required={props.required}
+                disabled={props.disabled}
+            />
+        ) : (
+            <input {...props} id={props.name} type={type} className="block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-primary disabled:opacity-50 transition-all sm:text-sm" />
+        )}
     </div>
 );
 

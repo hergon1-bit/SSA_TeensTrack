@@ -11,11 +11,21 @@ import ConfirmationModal from '../components/ui/ConfirmationModal';
 import { TicketSelectorModal } from '../components/TicketSelectorModal';
 import { useForm } from '../hooks/useForm';
 import { ChevronDownIcon, TrashIcon, UsersIcon, PencilIcon, RefreshIcon, CheckCircleIcon, ClipboardListIcon, ShieldIcon, HeartHandshakeIcon, CalculatorIcon, TicketIcon, PrinterIcon, DownloadIcon } from '../components/ui/Icons';
+import DateInput from '../components/ui/DateInput';
 
 const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
     <div>
         <label htmlFor={props.name} className="block text-sm font-medium text-text-secondary mb-1">{label}</label>
-        <input {...props} id={props.name} className="block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-primary disabled:opacity-50 transition-all sm:text-sm" />
+        {props.type === 'date' ? (
+            <DateInput
+                {...props}
+                id={props.name}
+                value={props.value as string}
+                onChange={(e) => props.onChange && props.onChange(e as any)}
+            />
+        ) : (
+            <input {...props} id={props.name} className="block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-primary disabled:opacity-50 transition-all sm:text-sm" />
+        )}
     </div>
 );
 
@@ -1089,7 +1099,7 @@ const Eventos: React.FC = () => {
                                             </div>
                                             <div>
                                                 <label className="block text-xs font-medium text-text-secondary mb-1">Fecha de Entrega *</label>
-                                                <input type="date" required value={newEntregaFecha} onChange={e => setNewEntregaFecha(e.target.value)} className="w-full bg-surface border border-border p-2 text-sm rounded outline-none focus:ring-1 ring-primary" />
+                                                <DateInput required value={newEntregaFecha} onChange={e => setNewEntregaFecha(e.target.value)} className="w-full" />
                                             </div>
                                             <div>
                                                 <label className="block text-xs font-medium text-text-secondary mb-1">Número de Entradas *</label>
@@ -1255,11 +1265,10 @@ const Eventos: React.FC = () => {
                                                                 onChange={e => setNewAdhesionPayment({ ...newAdhesionPayment, [item.entrega.id]: e.target.value })} 
                                                                 className="w-full sm:w-32 bg-surface border border-border p-1.5 text-xs rounded outline-none focus:ring-1 ring-primary" 
                                                             />
-                                                            <input 
-                                                                type="date" 
+                                                            <DateInput 
                                                                 value={newAdhesionPaymentDate[item.entrega.id] || new Date().toISOString().split('T')[0]} 
                                                                 onChange={e => setNewAdhesionPaymentDate({ ...newAdhesionPaymentDate, [item.entrega.id]: e.target.value })} 
-                                                                className="w-full sm:w-32 bg-surface border border-border p-1.5 text-xs rounded outline-none focus:ring-1 ring-primary" 
+                                                                className="w-full sm:w-36 text-xs" 
                                                             />
                                                             <input 
                                                                 type="text" 
@@ -1417,12 +1426,11 @@ const Eventos: React.FC = () => {
                                                             disabled={isSavingPayment[item.inscripcion.id]}
                                                             className="flex-1 bg-surface border border-border p-1.5 text-sm rounded outline-none focus:ring-1 ring-primary disabled:opacity-50" 
                                                         />
-                                                        <input 
-                                                            type="date" 
+                                                        <DateInput 
                                                             value={newPaymentDate[item.inscripcion.id] || new Date().toISOString().split('T')[0]} 
                                                             onChange={e => setNewPaymentDate({...newPaymentDate, [item.inscripcion.id]: e.target.value})} 
                                                             disabled={isSavingPayment[item.inscripcion.id]}
-                                                            className="w-32 bg-surface border border-border p-1.5 text-sm rounded outline-none focus:ring-1 ring-primary disabled:opacity-50" 
+                                                            className="w-36 text-sm" 
                                                         />
                                                     </div>
                                                     <div className="flex gap-2">
@@ -1532,12 +1540,11 @@ const Eventos: React.FC = () => {
                                                             disabled={isSavingPayment[item.inscripcion.id]}
                                                             className="flex-1 bg-surface border border-border p-1.5 text-sm rounded outline-none focus:ring-1 ring-primary disabled:opacity-50" 
                                                         />
-                                                        <input 
-                                                            type="date" 
+                                                        <DateInput 
                                                             value={newPaymentDateServidor[item.inscripcion.id] || new Date().toISOString().split('T')[0]} 
                                                             onChange={e => setNewPaymentDateServidor({...newPaymentDateServidor, [item.inscripcion.id]: e.target.value})} 
                                                             disabled={isSavingPayment[item.inscripcion.id]}
-                                                            className="w-32 bg-surface border border-border p-1.5 text-sm rounded outline-none focus:ring-1 ring-primary disabled:opacity-50" 
+                                                            className="w-36 text-sm" 
                                                         />
                                                     </div>
                                                     <div className="flex gap-2">

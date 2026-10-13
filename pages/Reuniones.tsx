@@ -5,6 +5,7 @@ import { Reunion, Adolescente, AsistenciaDetalle, Page, Asistencia } from '../ty
 import { formatDate } from '../utils/helpers';
 import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
+import { DateInput } from '../components/ui/DateInput';
 import { useForm } from '../hooks/useForm';
 import { RefreshIcon, UsersIcon } from '../components/ui/Icons';
 import { api } from '../services/api';
@@ -248,10 +249,9 @@ const Reuniones: React.FC<ReunionesProps> = ({ navigateTo }) => {
             
             <div className="bg-surface p-4 rounded-lg flex flex-wrap gap-4 items-center">
                 <span className="text-text-secondary font-medium">Filtrar por fecha:</span>
-                <div>
+                <div className="w-36">
                     <label htmlFor="start-date" className="sr-only">Desde</label>
-                    <input 
-                        type="date"
+                    <DateInput 
                         id="start-date"
                         name="start"
                         value={dateFilter.start}
@@ -260,10 +260,9 @@ const Reuniones: React.FC<ReunionesProps> = ({ navigateTo }) => {
                     />
                 </div>
                 <span className="text-text-secondary">-</span>
-                 <div>
+                 <div className="w-36">
                     <label htmlFor="end-date" className="sr-only">Hasta</label>
-                    <input 
-                        type="date"
+                    <DateInput 
                         id="end-date"
                         name="end"
                         value={dateFilter.end}
@@ -443,7 +442,17 @@ const Reuniones: React.FC<ReunionesProps> = ({ navigateTo }) => {
 const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
     <div>
         <label htmlFor={props.name} className="block text-sm font-medium text-text-secondary">{label}</label>
-        <input {...props} id={props.name} className="mt-1 block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+        {props.type === 'date' ? (
+            <DateInput
+                {...props}
+                id={props.name}
+                value={props.value as string}
+                onChange={(e) => props.onChange && props.onChange(e as any)}
+                className="mt-1"
+            />
+        ) : (
+            <input {...props} id={props.name} className="mt-1 block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+        )}
     </div>
 );
 
