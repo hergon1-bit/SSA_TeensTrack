@@ -6,6 +6,7 @@ import { Tutor, GradoParentesco } from '../types';
 import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
 import { useForm } from '../hooks/useForm';
+import { PencilIcon, TrashIcon } from '../components/ui/Icons';
 
 const Tutores: React.FC = () => {
     const { tutores, adolescentes, tutoresAdolescentes, addTutor, updateTutor, deleteTutor } = useData();
@@ -143,11 +144,15 @@ const Tutores: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold">Gestión de Tutores</h1>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Gestión de Tutores</h1>
                 {hasPermission('tutores', 'create') && (
-                    <button onClick={openModalForCreate} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-                        Agregar Tutor
+                    <button 
+                        onClick={openModalForCreate} 
+                        className="min-h-[44px] px-5 py-2.5 bg-gradient-to-r from-primary via-indigo-600 to-indigo-700 hover:from-primary/95 hover:to-indigo-500 active:scale-[0.97] text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg hover:shadow-xl hover:shadow-primary/35 border border-primary/40 transition-all duration-200 flex items-center gap-2 group btn-shine"
+                    >
+                        <span className="text-base transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110 inline-block font-bold leading-none">+</span>
+                        <span>Agregar Tutor</span>
                     </button>
                 )}
             </div>
@@ -160,7 +165,7 @@ const Tutores: React.FC = () => {
                 className="w-full max-w-sm px-4 py-2 bg-surface border border-border rounded-md focus:ring-primary focus:border-primary transition"
             />
 
-            <div className="hidden md:block bg-surface shadow-lg rounded-lg overflow-x-auto border border-border">
+            <div className="hidden md:block bg-surface shadow-lg rounded-xl overflow-x-auto border border-border">
                 <table className="min-w-full divide-y divide-border">
                     <thead className="bg-background">
                         <tr>
@@ -184,8 +189,24 @@ const Tutores: React.FC = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">{tutor.parentesco}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">{tutor.linkedCount}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                    {hasPermission('tutores', 'update') && <button onClick={() => openModalForEdit(tutor)} className="text-primary hover:text-indigo-400 font-bold">Editar</button>}
-                                    {hasPermission('tutores', 'delete') && <button onClick={() => handleDeleteClick(tutor)} className="text-red-500 hover:text-red-400 font-bold">Eliminar</button>}
+                                    {hasPermission('tutores', 'update') && (
+                                        <button 
+                                            onClick={() => openModalForEdit(tutor)} 
+                                            className="group inline-flex items-center gap-1.5 min-h-[36px] px-3.5 py-1.5 rounded-xl text-xs font-bold text-primary bg-primary/10 hover:bg-primary hover:text-white dark:hover:text-black border border-primary/30 hover:border-primary shadow-2xs hover:shadow-sm hover:shadow-primary/25 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200"
+                                        >
+                                            <PencilIcon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-12" />
+                                            <span>Editar</span>
+                                        </button>
+                                    )}
+                                    {hasPermission('tutores', 'delete') && (
+                                        <button 
+                                            onClick={() => handleDeleteClick(tutor)} 
+                                            className="group inline-flex items-center gap-1.5 min-h-[36px] px-3.5 py-1.5 rounded-xl text-xs font-bold text-red-400 bg-red-500/10 hover:bg-red-600 hover:text-white border border-red-500/30 hover:border-red-600 shadow-2xs hover:shadow-sm hover:shadow-red-500/25 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200"
+                                        >
+                                            <TrashIcon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12" />
+                                            <span>Eliminar</span>
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}
@@ -202,7 +223,8 @@ const Tutores: React.FC = () => {
                                 <h3 className="text-base font-bold text-text-primary">{tutor.nombre} {tutor.apellido}</h3>
                                 <span className="text-[10px] text-text-secondary uppercase">{tutor.ciudad || '-'}</span>
                             </div>
-                            <span className="bg-primary/20 text-primary border border-primary/30 px-2 py-0.5 text-[10px] font-bold rounded-md uppercase">
+                            <span className="bg-primary/15 text-primary border border-primary/30 px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider inline-flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                                 {tutor.parentesco}
                             </span>
                         </div>
@@ -226,21 +248,23 @@ const Tutores: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-3 border-t border-border/50 pt-2">
+                        <div className="flex justify-end gap-2.5 border-t border-border/50 pt-3">
                             {hasPermission('tutores', 'update') && (
                                 <button 
                                     onClick={() => openModalForEdit(tutor)} 
-                                    className="text-primary hover:text-indigo-400 font-bold text-xs px-3 py-1.5 bg-primary/10 rounded-md transition-colors"
+                                    className="group min-h-[40px] px-4 py-2 bg-primary/10 hover:bg-primary text-primary hover:text-white dark:hover:text-black font-bold text-xs rounded-xl border border-primary/30 hover:border-primary shadow-2xs hover:shadow-sm hover:shadow-primary/25 active:scale-95 transition-all duration-200 flex items-center gap-1.5"
                                 >
-                                    Editar
+                                    <PencilIcon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-12" />
+                                    <span>Editar</span>
                                 </button>
                             )}
                             {hasPermission('tutores', 'delete') && (
                                 <button 
                                     onClick={() => handleDeleteClick(tutor)} 
-                                    className="text-red-500 hover:text-red-400 font-bold text-xs px-3 py-1.5 bg-red-500/10 rounded-md transition-colors"
+                                    className="group min-h-[40px] px-4 py-2 bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white font-bold text-xs rounded-xl border border-red-500/30 hover:border-red-600 shadow-2xs hover:shadow-sm hover:shadow-red-500/25 active:scale-95 transition-all duration-200 flex items-center gap-1.5"
                                 >
-                                    Eliminar
+                                    <TrashIcon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12" />
+                                    <span>Eliminar</span>
                                 </button>
                             )}
                         </div>
@@ -303,9 +327,20 @@ const Tutores: React.FC = () => {
                          </div>
                     </div>
 
-                    <div className="md:col-span-2 flex justify-end space-x-2 pt-4">
-                        <button type="button" onClick={closeModal} className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">Cancelar</button>
-                        <button type="submit" className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Guardar</button>
+                    <div className="md:col-span-2 flex justify-end space-x-3 pt-6 border-t border-border mt-2">
+                        <button 
+                            type="button" 
+                            onClick={closeModal} 
+                            className="min-h-[44px] px-5 py-2.5 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-surface/80 active:scale-[0.97] transition-all duration-200 shadow-xs hover:shadow"
+                        >
+                            Cancelar
+                        </button>
+                        <button 
+                            type="submit" 
+                            className="min-h-[44px] px-7 py-2.5 rounded-xl bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/95 hover:to-indigo-500 text-white font-bold text-sm shadow-lg hover:shadow-xl hover:shadow-primary/30 active:scale-[0.97] transition-all duration-200 flex items-center gap-2 btn-shine"
+                        >
+                            Guardar
+                        </button>
                     </div>
                 </form>
             </Modal>

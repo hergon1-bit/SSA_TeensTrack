@@ -250,12 +250,20 @@ const Workspace: React.FC = () => {
         </div>
         <div className="mt-4 md:mt-0 flex items-center gap-3">
           {isGoogleConnected ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500/10 text-green-500 border border-green-500/20">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-2xs hover:shadow-sm hover:scale-105 transition-all duration-300">
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-xs shadow-emerald-400"></span>
+              </span>
               <ShieldCheck className="w-4 h-4" />
               Ecosistema Conectado
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-2xs hover:shadow-sm hover:scale-105 transition-all duration-300">
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400 shadow-xs shadow-amber-400"></span>
+              </span>
               <ShieldCheck className="w-4 h-4" />
               Sin Conexión
             </span>
@@ -323,49 +331,49 @@ const Workspace: React.FC = () => {
             </div>
 
             {/* Sidebar Sub-Tabs */}
-            <div className="bg-surface border border-border rounded-xl p-2 shadow-sm space-y-1">
+            <div className="bg-surface border border-border rounded-xl p-1.5 sm:p-2 shadow-sm flex flex-row overflow-x-auto no-scrollbar gap-2 lg:flex-col lg:space-y-1">
               <button
                 onClick={() => setActiveTab('gmail')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                className={`flex-shrink-0 min-h-[44px] px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap ${
                   activeTab === 'gmail' 
-                    ? 'bg-primary text-white' 
+                    ? 'bg-primary text-white shadow-xs' 
                     : 'text-text-secondary hover:bg-background hover:text-text-primary'
                 }`}
               >
-                <Mail className="w-4 h-4" />
+                <Mail className="w-4 h-4 shrink-0" />
                 Gmail Inbox
               </button>
               <button
                 onClick={() => setActiveTab('tasks')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                className={`flex-shrink-0 min-h-[44px] px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap ${
                   activeTab === 'tasks' 
-                    ? 'bg-primary text-white' 
+                    ? 'bg-primary text-white shadow-xs' 
                     : 'text-text-secondary hover:bg-background hover:text-text-primary'
                 }`}
               >
-                <CheckSquare className="w-4 h-4" />
+                <CheckSquare className="w-4 h-4 shrink-0" />
                 Google Tasks
               </button>
               <button
                 onClick={() => setActiveTab('meet')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                className={`flex-shrink-0 min-h-[44px] px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap ${
                   activeTab === 'meet' 
-                    ? 'bg-primary text-white' 
+                    ? 'bg-primary text-white shadow-xs' 
                     : 'text-text-secondary hover:bg-background hover:text-text-primary'
                 }`}
               >
-                <Video className="w-4 h-4" />
+                <Video className="w-4 h-4 shrink-0" />
                 Google Meet
               </button>
               <button
                 onClick={() => setActiveTab('chat')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                className={`flex-shrink-0 min-h-[44px] px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap ${
                   activeTab === 'chat' 
-                    ? 'bg-primary text-white' 
+                    ? 'bg-primary text-white shadow-xs' 
                     : 'text-text-secondary hover:bg-background hover:text-text-primary'
                 }`}
               >
-                <MessageSquare className="w-4 h-4" />
+                <MessageSquare className="w-4 h-4 shrink-0" />
                 Google Chat Space
               </button>
             </div>

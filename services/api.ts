@@ -2,7 +2,7 @@ import {
   Adolescente, Encargado, Reunion, Asistencia, ResumenReunion, Tutor, TutorAdolescente, 
   InscripcionEvento, PagoEvento, ParticipanteEvento, Evento, Usuario, Rol, 
   CelebracionCumpleanos, Devocional, EntregaDevocional, Servidor, InscripcionServidor, 
-  PagoServidor, Permisos, TemaClase, EntregaAdhesion, PagoAdhesion 
+  PagoServidor, Permisos, TemaClase, EntregaAdhesion, PagoAdhesion, AjustesSistema 
 } from '../types';
 
 const API_BASE = '/api';
@@ -578,5 +578,18 @@ export const api = {
 
   deletePagoAdhesion: async (id: string): Promise<void> => {
     await http.delete(`/pagos-adhesiones/${id}`);
+  },
+
+  // Ajustes de Sistema / Tenant / Logo Corporativo
+  getAjustes: async (): Promise<AjustesSistema> => {
+    return await http.get<AjustesSistema>('/ajustes');
+  },
+
+  updateAjustes: async (ajustes: Partial<AjustesSistema>): Promise<AjustesSistema> => {
+    return await http.put<AjustesSistema>('/ajustes', ajustes);
+  },
+
+  resetLogo: async (): Promise<AjustesSistema> => {
+    return await http.delete<AjustesSistema>('/ajustes/logo');
   }
 };

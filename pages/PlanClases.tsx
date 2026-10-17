@@ -380,72 +380,72 @@ const PlanClases: React.FC = () => {
         )}
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-text-secondary uppercase tracking-wider">Total Candidatos</p>
-            <p className="text-2xl font-bold text-text-primary mt-1">{totalTemas}</p>
+      {/* Stats Cards (2 cols on mobile, 4 on desktop) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="bg-surface p-3 sm:p-4 rounded-xl border border-border shadow-sm flex items-center justify-between">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs font-medium text-text-secondary uppercase tracking-wider truncate">Total Temas</p>
+            <p className="text-xl sm:text-2xl font-bold text-text-primary mt-0.5 sm:mt-1">{totalTemas}</p>
           </div>
-          <div className="bg-primary/10 p-3 rounded-xl text-primary">
-            <BookOpen className="w-6 h-6" />
-          </div>
-        </div>
-
-        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-text-secondary uppercase tracking-wider">Desarrollados</p>
-            <p className="text-2xl font-bold text-emerald-600 mt-1">{desarrolladosCount}</p>
-          </div>
-          <div className="bg-emerald-500/10 p-3 rounded-xl text-emerald-600">
-            <CheckCircle2 className="w-6 h-6" />
+          <div className="bg-primary/10 p-2 sm:p-3 rounded-xl text-primary shrink-0">
+            <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
-        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-text-secondary uppercase tracking-wider">Pendientes</p>
-            <p className="text-2xl font-bold text-amber-600 mt-1">{pendientesCount}</p>
+        <div className="bg-surface p-3 sm:p-4 rounded-xl border border-border shadow-sm flex items-center justify-between">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs font-medium text-text-secondary uppercase tracking-wider truncate">Desarrollados</p>
+            <p className="text-xl sm:text-2xl font-bold text-emerald-600 mt-0.5 sm:mt-1">{desarrolladosCount}</p>
           </div>
-          <div className="bg-amber-500/10 p-3 rounded-xl text-amber-600">
-            <Clock className="w-6 h-6" />
+          <div className="bg-emerald-500/10 p-2 sm:p-3 rounded-xl text-emerald-600 shrink-0">
+            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
-        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-text-secondary uppercase tracking-wider">En Calendario</p>
-            <p className="text-2xl font-bold text-indigo-600 mt-1">{programadosCount}</p>
+        <div className="bg-surface p-3 sm:p-4 rounded-xl border border-border shadow-sm flex items-center justify-between">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs font-medium text-text-secondary uppercase tracking-wider truncate">Pendientes</p>
+            <p className="text-xl sm:text-2xl font-bold text-amber-600 mt-0.5 sm:mt-1">{pendientesCount}</p>
           </div>
-          <div className="bg-indigo-500/10 p-3 rounded-xl text-indigo-600">
-            <Calendar className="w-6 h-6" />
+          <div className="bg-amber-500/10 p-2 sm:p-3 rounded-xl text-amber-600 shrink-0">
+            <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
+          </div>
+        </div>
+
+        <div className="bg-surface p-3 sm:p-4 rounded-xl border border-border shadow-sm flex items-center justify-between">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs font-medium text-text-secondary uppercase tracking-wider truncate">En Calendario</p>
+            <p className="text-xl sm:text-2xl font-bold text-indigo-600 mt-0.5 sm:mt-1">{programadosCount}</p>
+          </div>
+          <div className="bg-indigo-500/10 p-2 sm:p-3 rounded-xl text-indigo-600 shrink-0">
+            <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-border flex gap-4">
+      <div className="border-b border-border flex overflow-x-auto no-scrollbar gap-2 py-1">
         <button
           onClick={() => setActiveTab('candidatos')}
-          className={`pb-3 px-2 font-medium text-sm flex items-center gap-2 border-b-2 transition-all ${
+          className={`min-h-[44px] pb-2.5 pt-2 px-3 font-medium text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap active:scale-95 transition-all ${
             activeTab === 'candidatos'
-              ? 'border-primary text-primary font-semibold'
+              ? 'border-primary text-primary font-bold'
               : 'border-transparent text-text-secondary hover:text-text-primary'
           }`}
         >
-          <Sparkles className="w-4 h-4" />
-          Temas Candidatos y Prioridad
+          <Sparkles className="w-4 h-4 shrink-0" />
+          Temas Candidatos
         </button>
         <button
           onClick={() => setActiveTab('calendario')}
-          className={`pb-3 px-2 font-medium text-sm flex items-center gap-2 border-b-2 transition-all ${
+          className={`min-h-[44px] pb-2.5 pt-2 px-3 font-medium text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap active:scale-95 transition-all ${
             activeTab === 'calendario'
-              ? 'border-primary text-primary font-semibold'
+              ? 'border-primary text-primary font-bold'
               : 'border-transparent text-text-secondary hover:text-text-primary'
           }`}
         >
-          <Calendar className="w-4 h-4" />
-          Calendario / Plan de Clases ({programadosCount})
+          <Calendar className="w-4 h-4 shrink-0" />
+          Calendario ({programadosCount})
         </button>
       </div>
 
@@ -453,7 +453,7 @@ const PlanClases: React.FC = () => {
       {activeTab === 'candidatos' && (
         <div className="space-y-4">
           {/* Filters Bar */}
-          <div className="bg-surface p-4 rounded-xl border border-border shadow-sm flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center">
+          <div className="bg-surface p-3 sm:p-4 rounded-xl border border-border shadow-sm flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center">
             {/* Search */}
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-text-secondary absolute left-3 top-1/2 transform -translate-y-1/2" />
@@ -462,19 +462,19 @@ const PlanClases: React.FC = () => {
                 placeholder="Buscar por título, contenido u objetivos..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full pl-9 pr-4 py-2.5 min-h-[44px] bg-background border border-border rounded-lg text-base sm:text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               {/* Estado Filter */}
-              <div className="flex items-center gap-1.5 bg-background border border-border px-3 py-1.5 rounded-lg text-sm">
-                <Filter className="w-3.5 h-3.5 text-text-secondary" />
+              <div className="flex items-center gap-1.5 bg-background border border-border px-3 py-2 min-h-[44px] rounded-lg text-base sm:text-sm flex-1 sm:flex-none">
+                <Filter className="w-3.5 h-3.5 text-text-secondary shrink-0" />
                 <span className="text-xs text-text-secondary">Estado:</span>
                 <select
                   value={filterEstado}
                   onChange={(e) => setFilterEstado(e.target.value as any)}
-                  className="bg-transparent text-text-primary text-sm font-medium focus:outline-none"
+                  className="bg-transparent text-text-primary text-base sm:text-sm font-medium focus:outline-none flex-1"
                 >
                   <option value="todos">Todos</option>
                   <option value="desarrollados">Desarrollados</option>
@@ -483,12 +483,12 @@ const PlanClases: React.FC = () => {
               </div>
 
               {/* Prioridad Filter */}
-              <div className="flex items-center gap-1.5 bg-background border border-border px-3 py-1.5 rounded-lg text-sm">
+              <div className="flex items-center gap-1.5 bg-background border border-border px-3 py-2 min-h-[44px] rounded-lg text-base sm:text-sm flex-1 sm:flex-none">
                 <span className="text-xs text-text-secondary">Prioridad:</span>
                 <select
                   value={filterPrioridad}
                   onChange={(e) => setFilterPrioridad(e.target.value as any)}
-                  className="bg-transparent text-text-primary text-sm font-medium focus:outline-none"
+                  className="bg-transparent text-text-primary text-base sm:text-sm font-medium focus:outline-none flex-1"
                 >
                   <option value="todas">Todas</option>
                   <option value="Alta">Alta</option>
@@ -711,20 +711,20 @@ const PlanClases: React.FC = () => {
                     </div>
 
                     {/* Action buttons */}
-                    <div className="flex items-center gap-2 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-border justify-end">
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-border justify-end flex-wrap">
                       {/* Toggle Desarrollado Quick Action */}
                       {canUpdate && (
                         <button
                           onClick={() => handleToggleDesarrollado(tema)}
-                          className={`p-2 rounded-lg border text-xs font-medium flex items-center gap-1 transition-all ${
+                          className={`min-h-[44px] px-3 py-2 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 ${
                             tema.desarrollado
                               ? 'bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20'
                               : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20'
                           }`}
                           title={tema.desarrollado ? "Marcar como pendiente" : "Marcar como desarrollado"}
                         >
-                          {tema.desarrollado ? <Clock className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-                          <span className="hidden sm:inline">
+                          {tema.desarrollado ? <Clock className="w-4 h-4 shrink-0" /> : <CheckCircle2 className="w-4 h-4 shrink-0" />}
+                          <span>
                             {tema.desarrollado ? "Pendiente" : "Desarrollado"}
                           </span>
                         </button>
@@ -732,7 +732,7 @@ const PlanClases: React.FC = () => {
 
                       <button
                         onClick={() => setSelectedTemaDetail(tema)}
-                        className="p-2 text-text-secondary hover:text-primary hover:bg-background rounded-lg border border-border transition-colors"
+                        className="min-h-[44px] min-w-[44px] p-2 text-text-secondary hover:text-primary hover:bg-background rounded-lg border border-border transition-colors flex items-center justify-center active:scale-95"
                         title="Ver Bosquejo y Materiales"
                       >
                         <BookOpen className="w-4 h-4" />
@@ -741,7 +741,7 @@ const PlanClases: React.FC = () => {
                       {canUpdate && (
                         <button
                           onClick={() => handleOpenEditModal(tema)}
-                          className="p-2 text-text-secondary hover:text-primary hover:bg-background rounded-lg border border-border transition-colors"
+                          className="min-h-[44px] min-w-[44px] p-2 text-text-secondary hover:text-primary hover:bg-background rounded-lg border border-border transition-colors flex items-center justify-center active:scale-95"
                           title="Editar Tema"
                         >
                           <Edit className="w-4 h-4" />
@@ -751,7 +751,7 @@ const PlanClases: React.FC = () => {
                       {canDelete && (
                         <button
                           onClick={() => setTemaToDelete(tema)}
-                          className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-500/10 rounded-lg border border-border transition-colors"
+                          className="min-h-[44px] min-w-[44px] p-2 text-text-secondary hover:text-red-600 hover:bg-red-500/10 rounded-lg border border-border transition-colors flex items-center justify-center active:scale-95"
                           title="Eliminar Tema"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -869,7 +869,7 @@ const PlanClases: React.FC = () => {
                 placeholder="Ej. La Armadura de Dios, Identidad en Cristo..."
                 value={editingTema.titulo || ''}
                 onChange={(e) => setEditingTema(prev => ({ ...prev, titulo: e.target.value }))}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                className="w-full px-3 py-2.5 min-h-[44px] bg-background border border-border rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
               />
             </div>
 
@@ -882,7 +882,7 @@ const PlanClases: React.FC = () => {
                 <select
                   value={editingTema.prioridad || 'Media'}
                   onChange={(e) => setEditingTema(prev => ({ ...prev, prioridad: e.target.value as any }))}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                  className="w-full px-3 py-2.5 min-h-[44px] bg-background border border-border rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
                 >
                   <option value="Alta">Alta</option>
                   <option value="Media">Media</option>
@@ -899,7 +899,7 @@ const PlanClases: React.FC = () => {
                   min="1"
                   value={editingTema.orden || 1}
                   onChange={(e) => setEditingTema(prev => ({ ...prev, orden: Number(e.target.value) }))}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                  className="w-full px-3 py-2.5 min-h-[44px] bg-background border border-border rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
                 />
               </div>
             </div>
@@ -914,7 +914,7 @@ const PlanClases: React.FC = () => {
                 placeholder="Breve resumen del tema o bosquejo general de la enseñanza..."
                 value={editingTema.descripcion || ''}
                 onChange={(e) => setEditingTema(prev => ({ ...prev, descripcion: e.target.value }))}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
               />
             </div>
 
@@ -928,7 +928,7 @@ const PlanClases: React.FC = () => {
                 placeholder="¿Qué queremos que el adolescente aprenda o aplique?"
                 value={editingTema.objetivos || ''}
                 onChange={(e) => setEditingTema(prev => ({ ...prev, objetivos: e.target.value }))}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
               />
             </div>
 
@@ -1234,17 +1234,17 @@ const PlanClases: React.FC = () => {
             </div>
 
             {/* Buttons */}
-            <div className="flex justify-end gap-2 pt-4 border-t border-border">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4 border-t border-border">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
+                className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 active:scale-95 transition-all text-center"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow"
+                className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 active:scale-95 transition-all shadow-md text-center"
               >
                 Guardar Tema
               </button>
@@ -1507,7 +1507,7 @@ const PlanClases: React.FC = () => {
             <div className="flex justify-end pt-3 border-t border-border">
               <button
                 onClick={() => setSelectedTemaDetail(null)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700"
+                className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 active:scale-95 transition-all text-center"
               >
                 Cerrar
               </button>

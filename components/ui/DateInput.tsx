@@ -126,12 +126,15 @@ export const DateInput: React.FC<DateInputProps> = ({
     }
   };
 
-  const baseInputClass =
-    className ||
-    'block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-primary disabled:opacity-50 transition-all sm:text-sm';
+  // Separate wrapper-level classes (margin, width, flex) from input-level classes
+  const isWrapperClass = (c: string) => /^(mt-|mb-|my-|m-|w-|max-w-|min-w-|flex-|inline-|self-)/.test(c);
+  const classList = className ? className.trim().split(/\s+/) : [];
+  const wrapperCustomClasses = classList.filter(isWrapperClass).join(' ');
+  const inputCustomClasses = classList.filter(c => !isWrapperClass(c)).join(' ');
+  const hasWidth = classList.some(c => /^(w-|max-w-|min-w-|flex-1)/.test(c));
 
   return (
-    <div className="relative flex items-center w-full">
+    <div className={`relative flex items-center ${hasWidth ? '' : 'w-full'} ${wrapperCustomClasses}`.trim()}>
       <input
         type="text"
         id={id}
@@ -145,19 +148,19 @@ export const DateInput: React.FC<DateInputProps> = ({
         autoFocus={autoFocus}
         maxLength={10}
         inputMode="numeric"
-        className={`${baseInputClass} pr-10`}
+        className={`block w-full px-3 py-2.5 min-h-[44px] bg-background border border-border rounded-lg shadow-xs focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-base sm:text-sm text-text-primary placeholder:text-text-secondary/50 disabled:opacity-50 transition-all pr-11 ${inputCustomClasses}`.trim()}
       />
 
-      {/* Button to open calendar picker */}
+      {/* Button to open calendar picker (min 44px touch target) */}
       <button
         type="button"
         tabIndex={-1}
         onClick={openPicker}
         disabled={disabled}
         aria-label="Abrir calendario"
-        className="absolute right-2.5 p-1 text-text-secondary hover:text-primary transition-colors disabled:opacity-40"
+        className="absolute right-0 top-0 bottom-0 w-11 flex items-center justify-center text-text-secondary hover:text-primary active:scale-95 transition-colors disabled:opacity-40"
       >
-        <CalendarDaysIcon className="w-4 h-4" />
+        <CalendarDaysIcon className="w-5 h-5" />
       </button>
 
       {/* Hidden native input to provide calendar dropdown without overriding format */}

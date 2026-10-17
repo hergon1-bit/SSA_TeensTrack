@@ -229,8 +229,28 @@ const Asistencia: React.FC<AsistenciaProps> = ({ reunionId, navigateTo }) => {
                                     <td className="px-6 py-4 whitespace-nowrap font-medium text-text-primary">{ado.nombre} {ado.apellido}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex justify-center space-x-2">
-                                            <button onClick={() => handleAsistenciaChange(ado.id, 'Presente')} className={`px-3 py-1 text-sm rounded-full transition ${asistencia.estado === 'Presente' ? 'bg-green-500 text-white' : 'bg-surface hover:bg-green-500/20'}`}>Presente</button>
-                                            <button onClick={() => handleAsistenciaChange(ado.id, 'Ausente')} className={`px-3 py-1 text-sm rounded-full transition ${asistencia.estado === 'Ausente' ? 'bg-red-500 text-white' : 'bg-surface hover:bg-red-500/20'}`}>Ausente</button>
+                                            <button 
+                                                onClick={() => handleAsistenciaChange(ado.id, 'Presente')} 
+                                                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-full transition-all duration-200 active:scale-95 shadow-xs ${
+                                                    asistencia.estado === 'Presente' 
+                                                        ? 'bg-emerald-500 text-white shadow-emerald-500/30' 
+                                                        : 'bg-surface hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/25'
+                                                }`}
+                                            >
+                                                <span className={`w-1.5 h-1.5 rounded-full ${asistencia.estado === 'Presente' ? 'bg-white shadow-xs' : 'bg-emerald-400'}`}></span>
+                                                Presente
+                                            </button>
+                                            <button 
+                                                onClick={() => handleAsistenciaChange(ado.id, 'Ausente')} 
+                                                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-full transition-all duration-200 active:scale-95 shadow-xs ${
+                                                    asistencia.estado === 'Ausente' 
+                                                        ? 'bg-rose-500 text-white shadow-rose-500/30' 
+                                                        : 'bg-surface hover:bg-rose-500/20 text-rose-400 border border-rose-500/25'
+                                                }`}
+                                            >
+                                                <span className={`w-1.5 h-1.5 rounded-full ${asistencia.estado === 'Ausente' ? 'bg-white shadow-xs' : 'bg-rose-400'}`}></span>
+                                                Ausente
+                                            </button>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -293,23 +313,25 @@ const Asistencia: React.FC<AsistenciaProps> = ({ reunionId, navigateTo }) => {
                                     <button 
                                         type="button"
                                         onClick={() => handleAsistenciaChange(ado.id, 'Presente')} 
-                                        className={`py-2.5 px-4 text-sm font-semibold rounded-lg transition-all focus:outline-none flex justify-center items-center gap-1.5 ${
+                                        className={`min-h-[44px] py-2.5 px-4 text-sm font-bold rounded-xl transition-all duration-200 active:scale-95 focus:outline-none flex justify-center items-center gap-2 ${
                                             asistencia.estado === 'Presente' 
-                                                ? 'bg-green-500 text-white shadow-md' 
-                                                : 'bg-background hover:bg-green-500/10 text-text-secondary border border-border'
+                                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/25' 
+                                                : 'bg-background hover:bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                                         }`}
                                     >
+                                        <span className={`w-2 h-2 rounded-full ${asistencia.estado === 'Presente' ? 'bg-white shadow-xs' : 'bg-emerald-400'}`}></span>
                                         <span>Presente</span>
                                     </button>
                                     <button 
                                         type="button"
                                         onClick={() => handleAsistenciaChange(ado.id, 'Ausente')} 
-                                        className={`py-2.5 px-4 text-sm font-semibold rounded-lg transition-all focus:outline-none flex justify-center items-center gap-1.5 ${
+                                        className={`min-h-[44px] py-2.5 px-4 text-sm font-bold rounded-xl transition-all duration-200 active:scale-95 focus:outline-none flex justify-center items-center gap-2 ${
                                             asistencia.estado === 'Ausente' 
-                                                ? 'bg-red-500 text-white shadow-md' 
-                                                : 'bg-background hover:bg-red-500/10 text-text-secondary border border-border'
+                                                ? 'bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-md shadow-rose-500/25' 
+                                                : 'bg-background hover:bg-rose-500/10 text-rose-400 border border-rose-500/30'
                                         }`}
                                     >
+                                        <span className={`w-2 h-2 rounded-full ${asistencia.estado === 'Ausente' ? 'bg-white shadow-xs' : 'bg-rose-400'}`}></span>
                                         <span>Ausente</span>
                                     </button>
                                 </div>

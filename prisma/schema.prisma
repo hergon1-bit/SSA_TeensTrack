@@ -275,3 +275,14 @@ model TemaClase {
   materiales      Json     // Array of MaterialAdjunto objects
   notas           String?
 }
+
+model AjustesSistema {
+  id              String   @id @default("default")
+  tenantId        String?  @default("main")
+  nombreSistema   String   @default("Seguimiento")
+  subtitulo       String?  @default("Sistema de Gestión")
+  logoBase64      String?  @db.Text
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
+}
+

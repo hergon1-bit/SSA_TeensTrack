@@ -31,7 +31,11 @@ import Servidores from './pages/Servidores';
 import Workspace from './pages/Workspace';
 import PlanClases from './pages/PlanClases';
 import InactivarTeens from './pages/InactivarTeens';
+import LogosYAjustes from './pages/LogosYAjustes';
 import { BirthdayChecker } from './components/BirthdayChecker';
+import { AjustesProvider } from './contexts/AjustesContext';
+
+import BottomNav from './components/layout/BottomNav';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
@@ -47,7 +51,7 @@ const AppContent: React.FC = () => {
   };
 
   if (loading) return (
-    <div className="flex h-screen items-center justify-center bg-background">
+    <div className="flex min-h-[100dvh] h-dvh items-center justify-center bg-background">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
     </div>
   );
@@ -74,6 +78,7 @@ const AppContent: React.FC = () => {
       case 'reportes-financieros': return <ReportesFinancieros />;
       case 'usuarios': return <Usuarios />;
       case 'roles': return <Roles />;
+      case 'logos-ajustes': return <LogosYAjustes />;
       case 'limpiar-tablas': return <LimpiarTablas />;
       case 'cargar-tablas': return <CargarTablas />;
       case 'inactivar-teens': return <InactivarTeens />;
@@ -84,7 +89,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex min-h-[100dvh] h-dvh bg-background overflow-hidden">
       <Sidebar 
         currentPage={currentPage} 
         navigateTo={navigateTo} 
@@ -93,10 +98,15 @@ const AppContent: React.FC = () => {
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden ml-0 lg:ml-64">
         <Header toggleSidebar={() => setSidebarOpen(!isSidebarOpen)} />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-3.5 sm:p-5 md:p-6 lg:p-8 pb-24 lg:pb-8">
           {renderPage()}
         </main>
         <BirthdayChecker />
+        <BottomNav 
+          currentPage={currentPage} 
+          navigateTo={navigateTo} 
+          openSidebar={() => setSidebarOpen(true)} 
+        />
       </div>
     </div>
   );
@@ -104,15 +114,17 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => (
   <ThemeProvider>
-    <AuthProvider>
-      <GoogleOAuthProvider clientId={(import.meta as any).env.VITE_GOOGLE_CLIENT_ID || "PROVIDE_YOUR_CLIENT_ID"}>
-        <GoogleWorkspaceProvider>
-          <DataProvider>
-            <AppContent />
-          </DataProvider>
-        </GoogleWorkspaceProvider>
-      </GoogleOAuthProvider>
-    </AuthProvider>
+    <AjustesProvider>
+      <AuthProvider>
+        <GoogleOAuthProvider clientId={(import.meta as any).env.VITE_GOOGLE_CLIENT_ID || "PROVIDE_YOUR_CLIENT_ID"}>
+          <GoogleWorkspaceProvider>
+            <DataProvider>
+              <AppContent />
+            </DataProvider>
+          </GoogleWorkspaceProvider>
+        </GoogleOAuthProvider>
+      </AuthProvider>
+    </AjustesProvider>
   </ThemeProvider>
 );
 

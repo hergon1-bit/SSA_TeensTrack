@@ -14,16 +14,32 @@ interface DashboardProps {
 
 const StatCard: React.FC<{ icon: React.ReactNode; title: string; value: string | number; color: string; onClick?: () => void }> = ({ icon, title, value, color, onClick }) => (
     <div 
-        className={`bg-surface p-6 rounded-lg shadow-lg flex items-center space-x-4 ${onClick ? 'cursor-pointer hover:bg-gray-700 transition-colors' : ''}`}
+        className={`bg-surface p-5 sm:p-6 rounded-2xl border border-border/70 shadow-sm flex items-center justify-between transition-all duration-300 relative overflow-hidden group ${
+            onClick 
+                ? 'cursor-pointer hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/40 active:scale-[0.98]' 
+                : ''
+        }`}
         onClick={onClick}
+        role={onClick ? "button" : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        title={onClick ? `Ver listado de ${title}` : undefined}
     >
-        <div className={`p-3 rounded-full ${color}`}>
-            {icon}
+        <div className="flex items-center space-x-4 min-w-0">
+            <div className={`p-3.5 rounded-xl ${color} shadow-md group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shrink-0`}>
+                {icon}
+            </div>
+            <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-text-secondary font-medium truncate">{title}</p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight mt-0.5">{value}</p>
+            </div>
         </div>
-        <div>
-            <p className="text-sm text-text-secondary">{title}</p>
-            <p className="text-2xl font-bold text-text-primary">{value}</p>
-        </div>
+        {onClick && (
+            <div className="text-text-secondary opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 hidden sm:block shrink-0">
+                <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
+            </div>
+        )}
     </div>
 );
 
@@ -150,32 +166,41 @@ const Dashboard: React.FC<DashboardProps> = ({ navigateTo }) => {
     return (
         <div className="space-y-8 pb-12">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold text-text-primary">Dashboard</h1>
-                <button onClick={handleRefresh} disabled={isLoading} className="p-2 rounded-full text-text-secondary hover:bg-surface transition-colors">
-                    <RefreshIcon className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+                <div>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Dashboard</h1>
+                    <p className="text-xs sm:text-sm text-text-secondary mt-0.5">Resumen de actividad y métricas institucionales</p>
+                </div>
+                <button 
+                    onClick={handleRefresh} 
+                    disabled={isLoading} 
+                    className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-surface border border-border/70 text-text-secondary hover:text-primary hover:border-primary/40 hover:bg-primary/10 active:scale-90 transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center group"
+                    title="Actualizar datos del dashboard"
+                    aria-label="Actualizar datos del dashboard"
+                >
+                    <RefreshIcon className={`w-5 h-5 transition-transform duration-500 group-hover:rotate-180 ${isLoading ? 'animate-spin text-primary' : ''}`} />
                 </button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                <StatCard icon={<UsersIcon className="text-white"/>} title="Adolescentes Activos" value={stats.adolescentesActivos} color="bg-blue-500" onClick={() => navigateTo('adolescentes')}/>
-                <StatCard icon={<ClipboardListIcon className="text-white"/>} title="Reuniones Totales" value={stats.reunionesTotales} color="bg-green-500" onClick={() => navigateTo('reuniones')}/>
-                <StatCard icon={<CalendarDaysIcon className="text-white"/>} title="Eventos Próximos" value={stats.eventosProximos} color="bg-orange-500" onClick={() => navigateTo('eventos')}/>
-                <StatCard icon={<UserCheckIcon className="text-white"/>} title="Encargados" value={stats.encargados} color="bg-purple-500" onClick={() => navigateTo('encargados')}/>
-                <StatCard icon={<HeartHandshakeIcon className="text-white"/>} title="Tutores" value={stats.tutores} color="bg-yellow-500" onClick={() => navigateTo('tutores')}/>
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+                <StatCard icon={<UsersIcon className="text-white w-6 h-6"/>} title="Adolescentes Activos" value={stats.adolescentesActivos} color="bg-blue-500" onClick={() => navigateTo('adolescentes')}/>
+                <StatCard icon={<ClipboardListIcon className="text-white w-6 h-6"/>} title="Reuniones Totales" value={stats.reunionesTotales} color="bg-green-500" onClick={() => navigateTo('reuniones')}/>
+                <StatCard icon={<CalendarDaysIcon className="text-white w-6 h-6"/>} title="Eventos Próximos" value={stats.eventosProximos} color="bg-orange-500" onClick={() => navigateTo('eventos')}/>
+                <StatCard icon={<UserCheckIcon className="text-white w-6 h-6"/>} title="Encargados" value={stats.encargados} color="bg-purple-500" onClick={() => navigateTo('encargados')}/>
+                <StatCard icon={<HeartHandshakeIcon className="text-white w-6 h-6"/>} title="Tutores" value={stats.tutores} color="bg-yellow-500" onClick={() => navigateTo('tutores')}/>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Columna Izquierda: Reuniones y Líderes Devocionales */}
                 <div className="space-y-8">
                     {/* Top 5 Devocionales (NUEVO) */}
-                    <div className="bg-surface p-6 rounded-lg shadow-lg border border-secondary/20">
+                    <div className="bg-surface p-6 rounded-2xl shadow-sm border border-secondary/20">
                         <h2 className="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
                             <TrophyIcon className="w-5 h-5 text-secondary"/>
                             Top 5 Líderes en Devocionales (Año Actual)
                         </h2>
                         <div className="space-y-4">
                             {topDevocionales.length > 0 ? topDevocionales.map((item, index) => (
-                                <div key={item.ado!.id} className="bg-background/50 p-3 rounded-md flex items-center gap-4">
+                                <div key={item.ado!.id} className="bg-background/50 p-3 rounded-xl flex items-center gap-4 transition hover:bg-background/80">
                                     <span className={`text-xl font-black ${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-gray-300' : 'text-orange-400'}`}>
                                         {index + 1}°
                                     </span>
@@ -184,7 +209,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigateTo }) => {
                                             <p className="font-bold text-text-primary">{item.ado!.nombre} {item.ado!.apellido}</p>
                                             <p className="text-xs font-bold text-secondary">{item.count} Entregas</p>
                                         </div>
-                                        <div className="w-full bg-gray-700 rounded-full h-2">
+                                        <div className="w-full bg-gray-700/40 rounded-full h-2 overflow-hidden">
                                             <div className="bg-secondary h-2 rounded-full transition-all duration-1000" style={{ width: `${Math.min(item.percentage, 100)}%` }}></div>
                                         </div>
                                     </div>
@@ -195,20 +220,26 @@ const Dashboard: React.FC<DashboardProps> = ({ navigateTo }) => {
                         </div>
                     </div>
 
-                    <div className="bg-surface p-6 rounded-lg shadow-lg">
+                    <div className="bg-surface p-6 rounded-2xl shadow-sm border border-border/70">
                         <h2 className="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
                             <ClipboardListIcon className="w-5 h-5 text-primary"/> 
                             Próximas Reuniones
                         </h2>
                         <div className="space-y-4">
                             {reuniones.filter(r => r.estado === 'En Proceso').slice(0, 3).map(reunion => (
-                                <div key={reunion.id} className="bg-background p-4 rounded-md flex justify-between items-center border-l-4 border-primary">
+                                <div key={reunion.id} className="bg-background/60 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-l-4 border-primary transition hover:bg-background shadow-xs">
                                     <div>
                                         <p className="font-bold text-primary">{reunion.tema}</p>
-                                        <p className="text-sm text-text-secondary">{formatDate(reunion.fecha)}</p>
+                                        <p className="text-xs sm:text-sm text-text-secondary">{formatDate(reunion.fecha)}</p>
                                     </div>
                                     {hasPermission('asistencias', 'create') && (
-                                        <button onClick={() => navigateTo('asistencia', { reunionId: reunion.id })} className="bg-primary text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 transition">Asistencia</button>
+                                        <button 
+                                            onClick={() => navigateTo('asistencia', { reunionId: reunion.id })} 
+                                            className="min-h-[40px] px-4 py-2 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/95 hover:to-indigo-500 active:scale-95 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg hover:shadow-primary/25 border border-primary/30 transition-all duration-200 flex items-center justify-center gap-1.5 self-start sm:self-auto group btn-shine"
+                                        >
+                                            <span>Tomar Asistencia</span>
+                                            <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
+                                        </button>
                                     )}
                                 </div>
                             ))}
@@ -218,7 +249,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigateTo }) => {
 
                 {/* Columna Derecha: Cumpleaños y Top Asistencia */}
                 <div className="space-y-8">
-                    <div className="bg-surface p-6 rounded-lg shadow-lg">
+                    <div className="bg-surface p-6 rounded-2xl shadow-sm border border-border/70">
                         <h2 className="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
                             <TrophyIcon className="w-5 h-5 text-yellow-400"/>
                             Top 10 Asistencia (6 Meses)
@@ -230,9 +261,9 @@ const Dashboard: React.FC<DashboardProps> = ({ navigateTo }) => {
                                     <div className="flex-1">
                                         <div className="flex justify-between mb-1">
                                             <p className="text-sm font-semibold text-text-primary">{item.ado!.nombre} {item.ado!.apellido}</p>
-                                            <p className="text-xs text-primary">{item.count} Asist.</p>
+                                            <p className="text-xs text-primary font-bold">{item.count} Asist.</p>
                                         </div>
-                                        <div className="w-full bg-gray-700 rounded-full h-1.5">
+                                        <div className="w-full bg-gray-700/40 rounded-full h-1.5 overflow-hidden">
                                             <div className="bg-primary h-1.5 rounded-full" style={{ width: `${item.percentage}%` }}></div>
                                         </div>
                                     </div>
@@ -241,22 +272,29 @@ const Dashboard: React.FC<DashboardProps> = ({ navigateTo }) => {
                         </div>
                     </div>
 
-                    <div className="bg-surface p-6 rounded-lg shadow-lg h-fit">
+                    <div className="bg-surface p-6 rounded-2xl shadow-sm border border-border/70 h-fit">
                         <h2 className="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
                             <span className="text-yellow-500">🎂</span> Cumpleaños del Mes
                         </h2>
                         <div className="space-y-3">
                             {proximosCumpleaneros.map(persona => (
-                                <div key={persona.id} className="bg-background p-3 rounded-md flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
-                                        <img src={`https://ui-avatars.com/api/?name=${persona.nombre}+${persona.apellido}&background=random`} alt="avatar" className="w-10 h-10 rounded-full" />
-                                        <div>
-                                            <p className="font-semibold text-text-primary">{persona.nombre} {persona.apellido}</p>
-                                            <p className="text-sm text-text-secondary">{formatDate(persona.fechaNacimiento)}</p>
+                                <div key={persona.id} className="bg-background/60 p-3 rounded-xl flex items-center justify-between transition hover:bg-background">
+                                    <div className="flex items-center space-x-3 min-w-0">
+                                        <img src={`https://ui-avatars.com/api/?name=${persona.nombre}+${persona.apellido}&background=random`} alt="avatar" className="w-10 h-10 rounded-full shrink-0 border border-border" />
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-text-primary text-sm truncate">{persona.nombre} {persona.apellido}</p>
+                                            <p className="text-xs text-text-secondary">{formatDate(persona.fechaNacimiento)}</p>
                                         </div>
                                     </div>
                                     {hasPermission('celebraciones_cumpleanos', 'create') && (
-                                        <button onClick={() => addCelebracionCumpleanos(persona.id, new Date().getFullYear())} className="p-1.5 rounded-full text-gray-400 hover:text-green-400 transition-all"><CheckCircleIcon className="w-6 h-6" /></button>
+                                        <button 
+                                            onClick={() => addCelebracionCumpleanos(persona.id, new Date().getFullYear())} 
+                                            className="min-h-[40px] min-w-[40px] p-2 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 hover:border-emerald-500 shadow-xs hover:shadow-md hover:shadow-emerald-500/25 active:scale-90 transition-all duration-200 flex items-center justify-center shrink-0 group ml-2"
+                                            title="Marcar como celebrado"
+                                            aria-label="Marcar como celebrado"
+                                        >
+                                            <CheckCircleIcon className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                                        </button>
                                     )}
                                 </div>
                             ))}

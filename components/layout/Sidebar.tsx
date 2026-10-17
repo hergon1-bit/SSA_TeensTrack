@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { HomeIcon, UsersIcon, UserCheckIcon, ClipboardListIcon, HeartHandshakeIcon, CalendarDaysIcon, BarChartIcon, SettingsIcon, ChevronDownIcon, ShieldIcon, TrashIcon, UploadCloudIcon, BookOpenIcon, CalculatorIcon } from '../ui/Icons';
 import { Page } from '../../types';
+import { useAjustes } from '../../contexts/AjustesContext';
+import { LogoViewer } from '../ui/LogoViewer';
 
 interface SidebarProps {
   currentPage: Page;
@@ -21,22 +23,23 @@ const NavItem: React.FC<{
     <a
       href="#"
       onClick={(e) => { e.preventDefault(); onClick(); }}
-      className={`flex items-center p-2 text-base font-normal rounded-lg transition-all duration-200 ${
+      className={`flex items-center min-h-[44px] px-3 py-2.5 text-base font-normal rounded-lg transition-all active:scale-[0.98] ${
         isActive
-          ? 'bg-primary text-white shadow-lg'
-          : 'text-text-secondary hover:bg-surface hover:text-text-primary transform hover:scale-105'
+          ? 'bg-primary text-white shadow-md'
+          : 'text-text-secondary hover:bg-surface hover:text-text-primary'
       }`}
     >
-      {icon}
-      <span className="ml-3 flex-1 whitespace-nowrap">{label}</span>
+      <span className="shrink-0">{icon}</span>
+      <span className="ml-3 flex-1 whitespace-nowrap truncate">{label}</span>
     </a>
   </li>
 );
 
 const Sidebar: React.FC<SidebarProps> = ({ currentPage, navigateTo, isOpen, setOpen }) => {
   const { user, hasPermission } = useAuth();
+  const { ajustes } = useAjustes();
   
-  const adminSubPages: Page[] = ['usuarios', 'roles', 'inactivar-teens', 'limpiar-tablas', 'cargar-tablas'];
+  const adminSubPages: Page[] = ['usuarios', 'roles', 'logos-ajustes', 'inactivar-teens', 'limpiar-tablas', 'cargar-tablas'];
   const [isAdminOpen, setIsAdminOpen] = useState(adminSubPages.includes(currentPage));
   
   if (!user) return null;
@@ -58,40 +61,59 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, navigateTo, isOpen, setO
 
   return (
     <>
-      <aside className={`fixed top-0 left-0 z-40 w-64 h-screen transition-transform ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} bg-surface border-r border-border`} aria-label="Sidebar">
-        <div className="h-full px-3 py-4 overflow-y-auto">
-          <div className="flex items-center pl-2.5 mb-5 border-b border-border pb-4">
-            <div className="bg-primary p-2 rounded-lg mr-2">
-                <UsersIcon className="w-6 h-6 text-white" />
+      <aside className={`fixed top-0 left-0 z-40 w-72 max-w-[85vw] h-dvh min-h-[100dvh] pb-[env(safe-area-inset-bottom)] transition-transform ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} bg-surface border-r border-border shadow-xl lg:shadow-none`} aria-label="Sidebar">
+        <div className="h-full px-3 py-4 overflow-y-auto flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pl-2.5 pr-1 mb-5 border-b border-border pb-4">
+              <div className="flex items-center min-w-0 pr-2">
+                <LogoViewer
+                  src={ajustes.logoBase64}
+                  alt={ajustes.nombreSistema}
+                  fallbackText={ajustes.nombreSistema}
+                  className="w-9 h-9 mr-2.5 rounded-lg shrink-0 shadow-sm"
+                  imgClassName="w-full h-full object-contain p-0.5"
+                />
+                <div className="min-w-0">
+                  <h1 className="text-lg font-bold text-text-primary truncate">
+                    {ajustes.nombreSistema || 'Seguimiento'}
+                  </h1>
+                </div>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                className="lg:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-text-secondary hover:text-text-primary rounded-lg active:scale-95"
+                title="Cerrar menú"
+                aria-label="Cerrar menú"
+              >
+                ✕
+              </button>
             </div>
-            <h1 className="text-xl font-bold text-text-primary">Seguimiento</h1>
-          </div>
-          <ul className="space-y-2">
-            {menuItems.filter(item => item.requiredPermission).map((item) => (
-              <NavItem
-                key={item.page}
-                icon={item.icon}
-                label={item.label}
-                isActive={currentPage === item.page}
-                onClick={() => navigateTo(item.page as Page)}
-              />
-            ))}
-             {hasPermission('usuarios', 'read') && (
-              <li>
-                <button
-                  onClick={() => setIsAdminOpen(!isAdminOpen)}
-                  className={`flex items-center justify-between w-full p-2 text-base font-normal rounded-lg transition-all duration-200 ${
-                    adminSubPages.includes(currentPage)
-                      ? 'bg-primary/20 text-primary'
-                      : 'text-text-secondary hover:bg-surface hover:text-text-primary'
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <SettingsIcon />
-                    <span className="ml-3 flex-1 whitespace-nowrap">Administración</span>
-                  </div>
-                  <ChevronDownIcon className={`w-5 h-5 transition-transform ${isAdminOpen ? 'rotate-180' : ''}`} />
-                </button>
+            <ul className="space-y-1.5">
+              {menuItems.filter(item => item.requiredPermission).map((item) => (
+                <NavItem
+                  key={item.page}
+                  icon={item.icon}
+                  label={item.label}
+                  isActive={currentPage === item.page}
+                  onClick={() => navigateTo(item.page as Page)}
+                />
+              ))}
+               {hasPermission('usuarios', 'read') && (
+                <li>
+                  <button
+                    onClick={() => setIsAdminOpen(!isAdminOpen)}
+                    className={`flex items-center justify-between w-full min-h-[44px] px-3 py-2.5 text-base font-normal rounded-lg transition-all active:scale-[0.98] ${
+                      adminSubPages.includes(currentPage)
+                        ? 'bg-primary/20 text-primary'
+                        : 'text-text-secondary hover:bg-surface hover:text-text-primary'
+                    }`}
+                  >
+                    <div className="flex items-center truncate">
+                      <SettingsIcon />
+                      <span className="ml-3 flex-1 whitespace-nowrap truncate">Administración</span>
+                    </div>
+                    <ChevronDownIcon className={`w-5 h-5 transition-transform ${isAdminOpen ? 'rotate-180' : ''}`} />
+                  </button>
                 {isAdminOpen && (
                   <ul className="pl-4 mt-2 space-y-2 border-l border-border ml-4">
                     <NavItem
@@ -105,6 +127,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, navigateTo, isOpen, setO
                       label="Roles y Permisos"
                       isActive={currentPage === 'roles'}
                       onClick={() => navigateTo('roles')}
+                    />
+                    <NavItem
+                      icon={<SettingsIcon className="w-5 h-5" />}
+                      label="Logos y Ajustes"
+                      isActive={currentPage === 'logos-ajustes'}
+                      onClick={() => navigateTo('logos-ajustes')}
                     />
                     <NavItem
                       icon={<UsersIcon className="w-5 h-5" />}
@@ -130,7 +158,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, navigateTo, isOpen, setO
             )}
           </ul>
         </div>
-      </aside>
+      </div>
+    </aside>
        {isOpen && <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setOpen(false)}></div>}
     </>
   );

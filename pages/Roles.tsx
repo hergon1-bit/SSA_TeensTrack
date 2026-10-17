@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Rol, Permisos } from '../types';
 import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
+import { PencilIcon, TrashIcon } from '../components/ui/Icons';
 
 // Helper Components
 const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
@@ -83,9 +84,20 @@ const RoleEditorModal: React.FC<RoleEditorModalProps> = ({ role, isOpen, onClose
                         </tbody>
                     </table>
                 </div>
-                <div className="flex justify-end space-x-2 pt-4">
-                    <button type="button" onClick={onClose} className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">Cancelar</button>
-                    <button type="submit" className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Guardar</button>
+                <div className="flex justify-end space-x-3 pt-6 border-t border-border mt-2">
+                    <button 
+                        type="button" 
+                        onClick={onClose} 
+                        className="min-h-[44px] px-5 py-2.5 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-surface/80 active:scale-[0.97] transition-all duration-200 shadow-xs hover:shadow"
+                    >
+                        Cancelar
+                    </button>
+                    <button 
+                        type="submit" 
+                        className="min-h-[44px] px-7 py-2.5 rounded-xl bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/95 hover:to-indigo-500 text-white font-bold text-sm shadow-lg hover:shadow-xl hover:shadow-primary/30 active:scale-[0.97] transition-all duration-200 flex items-center gap-2 btn-shine"
+                    >
+                        Guardar
+                    </button>
                 </div>
             </form>
         </Modal>
@@ -177,13 +189,39 @@ const Roles: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold">Gestión de Roles y Permisos</h1>
-                    <div className="flex gap-2">
-                        {hasPermission('roles', 'create') && <button onClick={handleCreateRole} className="bg-secondary text-white px-4 py-2 rounded-lg text-sm">Crear Rol</button>}
-                        {hasPermission('roles', 'update') && <button onClick={handleEditRole} disabled={!selectedRole} className="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50">Editar Rol</button>}
-                        {hasPermission('roles', 'delete') && <button onClick={handleDeleteRoleClick} disabled={!selectedRole} className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50">Eliminar Rol</button>}
-                    </div>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Gestión de Roles y Permisos</h1>
+                <div className="flex flex-wrap items-center gap-2.5">
+                    {hasPermission('roles', 'create') && (
+                        <button 
+                            onClick={handleCreateRole} 
+                            className="min-h-[44px] px-5 py-2.5 bg-gradient-to-r from-primary via-indigo-600 to-indigo-700 hover:from-primary/95 hover:to-indigo-500 active:scale-[0.97] text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg hover:shadow-xl hover:shadow-primary/35 border border-primary/40 transition-all duration-200 flex items-center gap-2 group btn-shine"
+                        >
+                            <span className="text-base transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110 inline-block font-bold leading-none">+</span>
+                            <span>Crear Rol</span>
+                        </button>
+                    )}
+                    {hasPermission('roles', 'update') && (
+                        <button 
+                            onClick={handleEditRole} 
+                            disabled={!selectedRole} 
+                            className="group inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-primary bg-primary/10 hover:bg-primary hover:text-white dark:hover:text-black border border-primary/30 hover:border-primary shadow-2xs hover:shadow-sm hover:shadow-primary/25 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none"
+                        >
+                            <PencilIcon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-12" />
+                            <span>Editar Rol</span>
+                        </button>
+                    )}
+                    {hasPermission('roles', 'delete') && (
+                        <button 
+                            onClick={handleDeleteRoleClick} 
+                            disabled={!selectedRole} 
+                            className="group inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-red-400 bg-red-500/10 hover:bg-red-600 hover:text-white border border-red-500/30 hover:border-red-600 shadow-2xs hover:shadow-sm hover:shadow-red-500/25 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none"
+                        >
+                            <TrashIcon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12" />
+                            <span>Eliminar Rol</span>
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="bg-surface p-6 rounded-lg shadow-lg">

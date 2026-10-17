@@ -6,6 +6,8 @@ import { formatDate, formatCurrency } from '../utils/helpers';
 import { RefreshIcon, CalculatorIcon, PrinterIcon, DownloadCloudIcon, UsersIcon, CheckCircleIcon, ClipboardListIcon, ShieldIcon, HeartHandshakeIcon } from '../components/ui/Icons';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useAjustes } from '../contexts/AjustesContext';
+import { optimizeLogoForPDF } from '../utils/logoOptimizer';
 
 type FinReportType = 'balance' | 'historial';
 type BalanceFilterStatus = 'all' | 'pending' | 'paid' | 'scholarship' | 'local';
@@ -32,6 +34,7 @@ const ReportesFinancieros: React.FC = () => {
         adolescentes, tutores, eventos, inscripciones, pagos, servidores, 
         inscripcionesServidores, pagosServidores, fetchData 
     } = useData();
+    const { ajustes } = useAjustes();
     const [activeReport, setActiveReport] = useState<FinReportType>('balance');
     const [selectedEventoId, setSelectedEventoId] = useState<string | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -306,12 +309,13 @@ const ReportesFinancieros: React.FC = () => {
         link.click();
     };
 
-    const handlePrintBalancePDF = () => {
+    const handlePrintBalancePDF = async () => {
         if (!selectedEventoId || !balanceTotals) return;
         const event = eventos.find(e => String(e.id) === String(selectedEventoId));
         const doc = new jsPDF('landscape'); 
         const now = new Date();
         const printDate = `${formatDate(now)} ${now.toLocaleTimeString('es-PY')}`;
+        const systemName = (ajustes?.nombreSistema || 'Seguimiento').toUpperCase();
 
         const filterLabels: Record<BalanceFilterStatus, string> = {
             all: 'Todos',
@@ -324,17 +328,31 @@ const ReportesFinancieros: React.FC = () => {
         const marginX = 14;
         let currentY = 15;
 
+        if (ajustes?.logoBase64) {
+            try {
+                const optLogo = await optimizeLogoForPDF(ajustes.logoBase64, 180, 80);
+                if (optLogo) {
+                    const ratio = optLogo.width / optLogo.height;
+                    const imgH = 14;
+                    const imgW = Math.min(36, Math.max(10, imgH * ratio));
+                    doc.addImage(optLogo.dataUrl, optLogo.format, marginX, 10, imgW, imgH);
+                }
+            } catch (e) {
+                console.warn('Could not add logo to Balance PDF', e);
+            }
+        }
+
         const addHeader = (data: any) => {
             doc.setFontSize(8);
             doc.setTextColor(150);
-            doc.text(`Impreso el: ${printDate}`, marginX, 10);
-            doc.text(`Página ${data.pageNumber} / ${data.pageCount}`, 280, 10, { align: 'right' });
+            doc.text(`Impreso el: ${printDate}`, marginX, 8);
+            doc.text(`Página ${data.pageNumber} / ${data.pageCount}`, 280, 8, { align: 'right' });
         };
 
-        doc.setFontSize(22);
+        doc.setFontSize(20);
         doc.setTextColor(40);
         doc.setFont('helvetica', 'bold');
-        doc.text("Balances y Deudas de Inscriptos", 148, currentY + 10, { align: 'center' });
+        doc.text(`${systemName} - Balances y Deudas de Inscriptos`, 148, currentY + 10, { align: 'center' });
         
         currentY += 25;
         doc.setFontSize(14);
@@ -518,14 +536,14 @@ const ReportesFinancieros: React.FC = () => {
                 </div>
             </div>
             
-            <div className="bg-surface p-6 rounded-xl shadow-lg border border-border">
-                <div className="flex justify-between items-end mb-8 gap-4 flex-wrap">
-                    <div className="flex-1 min-w-[300px]">
-                        <label className="block text-xs font-bold text-text-secondary mb-2 uppercase tracking-widest">Seleccionar Evento</label>
+            <div className="bg-surface p-3.5 sm:p-6 rounded-xl shadow-lg border border-border">
+                <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-end mb-6 gap-3">
+                    <div className="w-full sm:flex-1">
+                        <label className="block text-xs font-bold text-text-secondary mb-1.5 uppercase tracking-widest">Seleccionar Evento</label>
                         <select 
                             value={selectedEventoId || ''} 
                             onChange={e => { setSelectedEventoId(e.target.value || null); setSearchTermBalance(''); setActiveStatusFilter('all'); }} 
-                            className="bg-background border border-border p-3 rounded-lg w-full text-text-primary focus:ring-2 ring-primary outline-none transition-all"
+                            className="bg-background border border-border p-3 min-h-[44px] rounded-lg w-full text-base sm:text-sm text-text-primary focus:ring-2 ring-primary outline-none transition-all"
                         >
                             <option value="">-- Seleccione un evento para ver finanzas --</option>
                             {eventos.filter(e => e.tieneCosto).map(e => (
@@ -533,20 +551,22 @@ const ReportesFinancieros: React.FC = () => {
                             ))}
                         </select>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 justify-end">
                         {activeReport === 'balance' && selectedEventoId && (
                             <>
                                 <button 
                                     onClick={handleExportBalanceExcel}
-                                    className="bg-secondary text-white p-3 rounded-lg hover:bg-emerald-600 transition-colors shadow-md"
+                                    className="bg-secondary text-white min-h-[44px] min-w-[44px] p-2.5 rounded-lg hover:bg-emerald-600 active:scale-95 transition flex items-center justify-center shadow-md"
                                     title="Exportar a Excel"
+                                    aria-label="Exportar a Excel"
                                 >
                                     <DownloadCloudIcon className="w-5 h-5" />
                                 </button>
                                 <button 
                                     onClick={handlePrintBalancePDF}
-                                    className="bg-gray-700 text-white p-3 rounded-lg hover:bg-gray-600 transition-colors shadow-md border border-border"
+                                    className="bg-gray-700 text-white min-h-[44px] min-w-[44px] p-2.5 rounded-lg hover:bg-gray-600 active:scale-95 transition flex items-center justify-center shadow-md border border-border"
                                     title="Imprimir PDF del Balance"
+                                    aria-label="Imprimir PDF del Balance"
                                 >
                                     <PrinterIcon className="w-5 h-5" />
                                 </button>
@@ -556,45 +576,51 @@ const ReportesFinancieros: React.FC = () => {
                             <>
                                 <button 
                                     onClick={handleExportExcel}
-                                    className="bg-secondary text-white p-3 rounded-lg hover:bg-emerald-600 transition-colors shadow-md"
+                                    className="bg-secondary text-white min-h-[44px] min-w-[44px] p-2.5 rounded-lg hover:bg-emerald-600 active:scale-95 transition flex items-center justify-center shadow-md"
                                     title="Exportar a Excel"
+                                    aria-label="Exportar a Excel"
                                 >
                                     <DownloadCloudIcon className="w-5 h-5" />
                                 </button>
                                 <button 
                                     onClick={handlePrintHistoryPDF}
-                                    className="bg-gray-700 text-white p-3 rounded-lg hover:bg-gray-600 transition-colors shadow-md border border-border"
+                                    className="bg-gray-700 text-white min-h-[44px] min-w-[44px] p-2.5 rounded-lg hover:bg-gray-600 active:scale-95 transition flex items-center justify-center shadow-md border border-border"
                                     title="Imprimir PDF del Historial"
+                                    aria-label="Imprimir PDF del Historial"
                                 >
                                     <PrinterIcon className="w-5 h-5" />
                                 </button>
                             </>
                         )}
-                        <button onClick={handleRefresh} className="bg-background border border-border p-3 rounded-lg text-text-secondary hover:text-primary transition-all">
+                        <button 
+                            onClick={handleRefresh} 
+                            className="bg-background border border-border min-h-[44px] min-w-[44px] p-2.5 rounded-lg text-text-secondary hover:text-primary active:scale-95 transition flex items-center justify-center"
+                            aria-label="Actualizar datos"
+                        >
                             <RefreshIcon className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
                         </button>
                     </div>
                 </div>
 
                 {selectedEventoId && balanceTotals ? (
-                    <div className="space-y-8 animate-fade-in">
-                        {/* Indicadores Clave de Montos */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="p-5 bg-background/50 rounded-xl border border-border shadow-inner group text-center md:text-left">
+                    <div className="space-y-6 sm:space-y-8 animate-fade-in">
+                        {/* Indicadores Clave de Montos (2 columnas en móviles, 4 en desktop) */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+                            <div className="p-3.5 sm:p-5 bg-background/50 rounded-xl border border-border shadow-inner text-left">
                                 <p className="text-[10px] text-text-secondary uppercase font-bold tracking-tighter mb-1">Cobrado en Caja</p>
-                                <p className="text-2xl font-black text-green-400">{formatCurrency(balanceTotals.pagosRealizados)}</p>
+                                <p className="text-lg sm:text-2xl font-black text-green-400">{formatCurrency(balanceTotals.pagosRealizados)}</p>
                             </div>
-                            <div className="p-5 bg-background/50 rounded-xl border border-border shadow-inner group text-center md:text-left">
+                            <div className="p-3.5 sm:p-5 bg-background/50 rounded-xl border border-border shadow-inner text-left">
                                 <p className="text-[10px] text-text-secondary uppercase font-bold tracking-tighter mb-1">Saldo Pendiente</p>
-                                <p className="text-2xl font-black text-red-400">{formatCurrency(balanceTotals.saldosPendientes)}</p>
+                                <p className="text-lg sm:text-2xl font-black text-red-400">{formatCurrency(balanceTotals.saldosPendientes)}</p>
                             </div>
-                            <div className="p-5 bg-indigo-500/10 rounded-xl border border-indigo-500/20 shadow-inner group text-center md:text-left">
+                            <div className="p-3.5 sm:p-5 bg-indigo-500/10 rounded-xl border border-indigo-500/20 shadow-inner text-left">
                                 <p className="text-[10px] text-indigo-300 uppercase font-bold tracking-tighter mb-1">Becas (Iglesia)</p>
-                                <p className="text-2xl font-black text-indigo-400">{formatCurrency(balanceTotals.becasCargoIglesia)}</p>
+                                <p className="text-lg sm:text-2xl font-black text-indigo-400">{formatCurrency(balanceTotals.becasCargoIglesia)}</p>
                             </div>
-                            <div className="p-5 bg-orange-500/10 rounded-xl border border-orange-500/20 shadow-inner group text-center md:text-left">
+                            <div className="p-3.5 sm:p-5 bg-orange-500/10 rounded-xl border border-orange-500/20 shadow-inner text-left">
                                 <p className="text-[10px] text-orange-300 uppercase font-bold tracking-tighter mb-1">Acuerdos Locales</p>
-                                <p className="text-2xl font-black text-orange-400">{formatCurrency(balanceTotals.ahorroAcuerdoLocal)}</p>
+                                <p className="text-lg sm:text-2xl font-black text-orange-400">{formatCurrency(balanceTotals.ahorroAcuerdoLocal)}</p>
                             </div>
                         </div>
 
@@ -629,7 +655,7 @@ const ReportesFinancieros: React.FC = () => {
 
                         {/* Barra de Filtros (Balance General) */}
                         {activeReport === 'balance' && (
-                            <div className="flex flex-col lg:flex-row gap-4 p-4 bg-background/20 rounded-xl border border-border/50">
+                            <div className="flex flex-col lg:flex-row gap-3 p-3.5 sm:p-4 bg-background/20 rounded-xl border border-border/50">
                                 <div className="flex-1">
                                     <label className="block text-[10px] uppercase font-black text-text-secondary mb-1">Buscar por Nombre</label>
                                     <div className="relative">
@@ -638,39 +664,39 @@ const ReportesFinancieros: React.FC = () => {
                                             placeholder="Ej: Juan Pérez..." 
                                             value={searchTermBalance}
                                             onChange={(e) => setSearchTermBalance(e.target.value)}
-                                            className="w-full bg-background border border-border p-2 rounded-lg text-sm pl-10 focus:ring-2 ring-primary outline-none transition-all"
+                                            className="w-full min-h-[44px] bg-background border border-border p-2.5 rounded-lg text-base sm:text-sm pl-10 focus:ring-2 ring-primary outline-none transition-all"
                                         />
-                                        <UsersIcon className="w-4 h-4 absolute left-3 top-2.5 text-text-secondary" />
+                                        <UsersIcon className="w-4 h-4 absolute left-3 top-3.5 text-text-secondary" />
                                     </div>
                                 </div>
-                                <div className="flex flex-wrap items-end gap-2">
+                                <div className="flex overflow-x-auto snap-x no-scrollbar gap-2 py-1 items-center">
                                     <button 
                                         onClick={() => setActiveStatusFilter('all')}
-                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${activeStatusFilter === 'all' ? 'bg-primary text-white border-primary shadow-md' : 'bg-surface text-text-secondary border-border hover:bg-background'}`}
+                                        className={`px-4 py-2.5 min-h-[44px] shrink-0 rounded-lg text-xs font-bold transition-all border active:scale-95 ${activeStatusFilter === 'all' ? 'bg-primary text-white border-primary shadow-md' : 'bg-surface text-text-secondary border-border hover:bg-background'}`}
                                     >
                                         Todos
                                     </button>
                                     <button 
                                         onClick={() => setActiveStatusFilter('pending')}
-                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${activeStatusFilter === 'pending' ? 'bg-red-500/20 text-red-400 border-red-500/50 shadow-md' : 'bg-surface text-text-secondary border-border hover:bg-background'}`}
+                                        className={`px-4 py-2.5 min-h-[44px] shrink-0 rounded-lg text-xs font-bold transition-all border active:scale-95 ${activeStatusFilter === 'pending' ? 'bg-red-500/20 text-red-400 border-red-500/50 shadow-md' : 'bg-surface text-text-secondary border-border hover:bg-background'}`}
                                     >
                                         Pendientes
                                     </button>
                                     <button 
                                         onClick={() => setActiveStatusFilter('paid')}
-                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${activeStatusFilter === 'paid' ? 'bg-green-500/20 text-green-400 border-green-500/50 shadow-md' : 'bg-surface text-text-secondary border-border hover:bg-background'}`}
+                                        className={`px-4 py-2.5 min-h-[44px] shrink-0 rounded-lg text-xs font-bold transition-all border active:scale-95 ${activeStatusFilter === 'paid' ? 'bg-green-500/20 text-green-400 border-green-500/50 shadow-md' : 'bg-surface text-text-secondary border-border hover:bg-background'}`}
                                     >
                                         Total Pagados
                                     </button>
                                     <button 
                                         onClick={() => setActiveStatusFilter('scholarship')}
-                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${activeStatusFilter === 'scholarship' ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/50 shadow-md' : 'bg-surface text-text-secondary border-border hover:bg-background'}`}
+                                        className={`px-4 py-2.5 min-h-[44px] shrink-0 rounded-lg text-xs font-bold transition-all border active:scale-95 ${activeStatusFilter === 'scholarship' ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/50 shadow-md' : 'bg-surface text-text-secondary border-border hover:bg-background'}`}
                                     >
                                         Becados
                                     </button>
                                     <button 
                                         onClick={() => setActiveStatusFilter('local')}
-                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${activeStatusFilter === 'local' ? 'bg-orange-500/20 text-orange-400 border-orange-500/50 shadow-md' : 'bg-surface text-text-secondary border-border hover:bg-background'}`}
+                                        className={`px-4 py-2.5 min-h-[44px] shrink-0 rounded-lg text-xs font-bold transition-all border active:scale-95 ${activeStatusFilter === 'local' ? 'bg-orange-500/20 text-orange-400 border-orange-500/50 shadow-md' : 'bg-surface text-text-secondary border-border hover:bg-background'}`}
                                     >
                                         Acuerdos Locales
                                     </button>
@@ -678,120 +704,220 @@ const ReportesFinancieros: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Contenido de la Tabla según Pestaña */}
-                        <div className="overflow-x-auto rounded-xl border border-border bg-background/30">
-                            {activeReport === 'balance' ? (
-                                <table className="min-w-full text-sm text-left">
-                                    <thead className="bg-background text-text-secondary uppercase text-[10px] font-black tracking-widest">
-                                        <tr>
-                                            <th className="p-4">Tipo</th>
-                                            <th className="p-4">Nombre</th>
-                                            <th className="p-4">Reg. Salud</th>
-                                            <th className="p-4">Acuerdo / Beca</th>
-                                            <th className="p-4 text-right">Pagado</th>
-                                            <th className="p-4 text-right">Pendiente</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-border">
-                                        {filteredSummaryData.map((r, i) => (
-                                            <tr key={i} className="hover:bg-background/40 transition-colors group">
-                                                <td className={`p-4 font-bold text-[10px] ${r.tipo === 'CHICO' ? 'text-primary' : 'text-purple-400'}`}>{r.tipo}</td>
-                                                <td className="p-4 font-medium text-text-primary group-hover:text-primary">{r.nombre}</td>
-                                                <td className="p-4 text-xs font-mono text-text-secondary">{r.registro}</td>
-                                                <td className="p-4">
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {r.beca !== 'Ninguna' && !r.precioLocal && <span className="text-[8px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded uppercase font-black border border-indigo-500/30">Beca {r.beca}</span>}
-                                                        {r.precioLocal && <span className="text-[8px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded uppercase font-black border border-orange-500/30">Acuerdo Local</span>}
-                                                        {!r.precioLocal && r.beca === 'Ninguna' && <span className="text-[8px] text-text-secondary uppercase">Estándar</span>}
+                        {/* Contenido según Pestaña: Mobile Card View (Sección 5.1) y Desktop Table */}
+                        {activeReport === 'balance' ? (
+                            <>
+                                {/* Vista Móvil: Tarjetas apiladas (Card View) para celulares < 768px */}
+                                <div className="block md:hidden space-y-3">
+                                    {filteredSummaryData.map((r, i) => (
+                                        <div key={i} className="bg-surface p-4 rounded-xl border border-border shadow-md space-y-3">
+                                            <div className="flex justify-between items-start gap-2">
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                                                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${r.tipo === 'CHICO' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-purple-500/10 text-purple-400 border-purple-500/20'}`}>
+                                                            {r.tipo}
+                                                        </span>
+                                                        <span className="text-[10px] font-mono text-text-secondary">REG: {r.registro}</span>
                                                     </div>
-                                                </td>
-                                                <td className="p-4 text-right font-black text-green-400">{formatCurrency(r.pagado)}</td>
-                                                <td className={`p-4 text-right font-black ${r.saldo > 0 ? 'text-red-400' : 'text-green-500'}`}>{formatCurrency(r.saldo)}</td>
-                                            </tr>
-                                        ))}
-                                        {filteredSummaryData.length === 0 && (
+                                                    <h4 className="text-base font-bold text-text-primary truncate">{r.nombre}</h4>
+                                                </div>
+                                                <div className="text-right shrink-0">
+                                                    <span className={`px-2 py-1 inline-flex text-[10px] font-bold rounded-md uppercase tracking-wider ${
+                                                        r.saldo === 0 
+                                                            ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                                                            : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                                    }`}>
+                                                        {r.saldo === 0 ? 'Pagado' : 'Con Saldo'}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Beca / Acuerdo Tag */}
+                                            <div className="flex flex-wrap gap-1 text-[9px]">
+                                                {r.beca !== 'Ninguna' && !r.precioLocal && <span className="bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded uppercase font-black border border-indigo-500/30">Beca {r.beca}</span>}
+                                                {r.precioLocal && <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded uppercase font-black border border-orange-500/30">Acuerdo Local</span>}
+                                                {!r.precioLocal && r.beca === 'Ninguna' && <span className="text-text-secondary uppercase">Plan Estándar</span>}
+                                            </div>
+
+                                            {/* Montos en 2 columnas */}
+                                            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50 text-xs">
+                                                <div className="bg-background/50 p-2.5 rounded-lg border border-border/50">
+                                                    <p className="text-[10px] uppercase font-bold text-text-secondary">Pagado</p>
+                                                    <p className="text-base font-black text-green-400">{formatCurrency(r.pagado)}</p>
+                                                </div>
+                                                <div className="bg-background/50 p-2.5 rounded-lg border border-border/50">
+                                                    <p className="text-[10px] uppercase font-bold text-text-secondary">Pendiente</p>
+                                                    <p className={`text-base font-black ${r.saldo > 0 ? 'text-red-400' : 'text-green-500'}`}>{formatCurrency(r.saldo)}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {filteredSummaryData.length === 0 && (
+                                        <div className="p-8 text-center text-text-secondary bg-surface border border-border rounded-xl italic text-sm">
+                                            No se encontraron registros con los filtros aplicados.
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Vista Escritorio: Tabla tradicional (>= 768px) */}
+                                <div className="hidden md:block overflow-x-auto rounded-xl border border-border bg-background/30">
+                                    <table className="min-w-full text-sm text-left">
+                                        <thead className="bg-background text-text-secondary uppercase text-[10px] font-black tracking-widest">
                                             <tr>
-                                                <td colSpan={6} className="p-10 text-center text-text-secondary italic">No se encontraron registros con los filtros aplicados.</td>
+                                                <th className="p-4">Tipo</th>
+                                                <th className="p-4">Nombre</th>
+                                                <th className="p-4">Reg. Salud</th>
+                                                <th className="p-4">Acuerdo / Beca</th>
+                                                <th className="p-4 text-right">Pagado</th>
+                                                <th className="p-4 text-right">Pendiente</th>
                                             </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                <table className="min-w-full text-sm text-left">
-                                    <thead className="bg-background text-text-secondary uppercase text-[10px] font-black tracking-widest">
-                                        <tr>
-                                            <th className="p-4">Última Fecha</th>
-                                            <th className="p-4">Persona</th>
-                                            <th className="p-4">Tipo / Rol</th>
-                                            <th className="p-4 text-right">Monto Total</th>
-                                            <th className="p-4">Observaciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-border">
-                                        {historyData.map((h) => (
-                                            <tr key={h.key} className="hover:bg-background/40 transition-colors group align-top">
-                                                <td className="p-4">
-                                                    <div className="flex flex-col">
-                                                        <span className="font-mono text-xs text-text-primary font-bold">{formatDate(h.ultimaFecha)}</span>
-                                                        {h.pagos.length > 1 && (
-                                                            <div className="mt-2 flex flex-col space-y-0.5 opacity-60">
-                                                                {h.pagos.map((p, pi) => (
-                                                                    <span key={pi} className="text-[9px] font-mono">{formatDate(p.fecha)}</span>
-                                                                ))}
-                                                            </div>
-                                                        )}
+                                        </thead>
+                                        <tbody className="divide-y divide-border">
+                                            {filteredSummaryData.map((r, i) => (
+                                                <tr key={i} className="hover:bg-background/40 transition-colors group">
+                                                    <td className={`p-4 font-bold text-[10px] ${r.tipo === 'CHICO' ? 'text-primary' : 'text-purple-400'}`}>{r.tipo}</td>
+                                                    <td className="p-4 font-medium text-text-primary group-hover:text-primary">{r.nombre}</td>
+                                                    <td className="p-4 text-xs font-mono text-text-secondary">{r.registro}</td>
+                                                    <td className="p-4">
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {r.beca !== 'Ninguna' && !r.precioLocal && <span className="text-[8px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded uppercase font-black border border-indigo-500/30">Beca {r.beca}</span>}
+                                                            {r.precioLocal && <span className="text-[8px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded uppercase font-black border border-orange-500/30">Acuerdo Local</span>}
+                                                            {!r.precioLocal && r.beca === 'Ninguna' && <span className="text-[8px] text-text-secondary uppercase">Estándar</span>}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4 text-right font-black text-green-400">{formatCurrency(r.pagado)}</td>
+                                                    <td className={`p-4 text-right font-black ${r.saldo > 0 ? 'text-red-400' : 'text-green-500'}`}>{formatCurrency(r.saldo)}</td>
+                                                </tr>
+                                            ))}
+                                            {filteredSummaryData.length === 0 && (
+                                                <tr>
+                                                    <td colSpan={6} className="p-10 text-center text-text-secondary italic">No se encontraron registros con los filtros aplicados.</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                {/* Vista Móvil: Historial en tarjetas (Card View) */}
+                                <div className="block md:hidden space-y-3">
+                                    {historyData.map((h) => (
+                                        <div key={h.key} className="bg-surface p-4 rounded-xl border border-border shadow-md space-y-3">
+                                            <div className="flex justify-between items-start gap-2">
+                                                <div>
+                                                    <div className="flex items-center gap-1.5 mb-1">
+                                                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${h.tipo === 'CHICO' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-purple-500/10 text-purple-400 border-purple-500/20'}`}>
+                                                            {h.tipo} • {h.rol}
+                                                        </span>
                                                     </div>
-                                                </td>
-                                                <td className="p-4">
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-text-primary group-hover:text-primary transition-colors">{h.nombre}</span>
-                                                        {h.pagos.length > 1 && (
-                                                            <div className="mt-2 flex flex-col space-y-0.5 opacity-60 italic">
-                                                                {h.pagos.map((_, pi) => (
-                                                                    <span key={pi} className="text-[9px]">Pago parcial {pi + 1}</span>
-                                                                ))}
-                                                            </div>
-                                                        )}
+                                                    <h4 className="text-base font-bold text-text-primary">{h.nombre}</h4>
+                                                    <span className="text-[11px] font-mono text-text-secondary">Última fecha: {formatDate(h.ultimaFecha)}</span>
+                                                </div>
+                                                <div className="text-right shrink-0">
+                                                    <p className="text-[10px] uppercase font-bold text-text-secondary">Total Pagado</p>
+                                                    <p className="text-lg font-black text-green-400">{formatCurrency(h.montoTotal)}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Pagos desglosados */}
+                                            <div className="border-t border-border/50 pt-2 space-y-1.5">
+                                                <p className="text-[10px] font-bold uppercase text-text-secondary">Detalle de Pagos ({h.pagos.length})</p>
+                                                {h.pagos.map((p, pi) => (
+                                                    <div key={pi} className="flex justify-between items-center bg-background/50 p-2 rounded text-xs">
+                                                        <span className="font-mono text-text-secondary">{formatDate(p.fecha)}</span>
+                                                        <span className="font-bold text-green-400">{formatCurrency(p.monto)}</span>
+                                                        {p.notas && <span className="text-[10px] text-text-secondary italic truncate max-w-[100px]">"{p.notas}"</span>}
                                                     </div>
-                                                </td>
-                                                <td className="p-4">
-                                                    <div className="flex flex-col">
-                                                        <span className={`text-[10px] font-black uppercase ${h.tipo === 'CHICO' ? 'text-primary' : 'text-purple-400'}`}>{h.tipo}</span>
-                                                        <span className="text-[9px] text-text-secondary italic">{h.rol}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 text-right">
-                                                    <div className="flex flex-col">
-                                                        <span className="font-black text-green-400 text-base">{formatCurrency(h.montoTotal)}</span>
-                                                        {h.pagos.length > 1 && (
-                                                            <div className="mt-1.5 flex flex-col space-y-0.5 opacity-70">
-                                                                {h.pagos.map((p, pi) => (
-                                                                    <span key={pi} className="text-[10px] font-bold text-green-500/80">{formatCurrency(p.monto)}</span>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 text-xs text-text-secondary italic max-w-xs">
-                                                    <div className="flex flex-col space-y-1">
-                                                        {h.pagos.map((p, pi) => p.notas ? (
-                                                            <span key={pi} className="block truncate">"{p.notas}"</span>
-                                                        ) : (
-                                                            h.pagos.length > 1 ? <span key={pi} className="text-[10px] opacity-30">-</span> : '-'
-                                                        ))}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {historyData.length === 0 && (
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {historyData.length === 0 && (
+                                        <div className="p-8 text-center text-text-secondary bg-surface border border-border rounded-xl italic text-sm">
+                                            No se han registrado pagos para este evento todavía.
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Vista Escritorio: Tabla de historial (>= 768px) */}
+                                <div className="hidden md:block overflow-x-auto rounded-xl border border-border bg-background/30">
+                                    <table className="min-w-full text-sm text-left">
+                                        <thead className="bg-background text-text-secondary uppercase text-[10px] font-black tracking-widest">
                                             <tr>
-                                                <td colSpan={5} className="p-10 text-center text-text-secondary italic">No se han registrado pagos para este evento todavía.</td>
+                                                <th className="p-4">Última Fecha</th>
+                                                <th className="p-4">Persona</th>
+                                                <th className="p-4">Tipo / Rol</th>
+                                                <th className="p-4 text-right">Monto Total</th>
+                                                <th className="p-4">Observaciones</th>
                                             </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
+                                        </thead>
+                                        <tbody className="divide-y divide-border">
+                                            {historyData.map((h) => (
+                                                <tr key={h.key} className="hover:bg-background/40 transition-colors group align-top">
+                                                    <td className="p-4">
+                                                        <div className="flex flex-col">
+                                                            <span className="font-mono text-xs text-text-primary font-bold">{formatDate(h.ultimaFecha)}</span>
+                                                            {h.pagos.length > 1 && (
+                                                                <div className="mt-2 flex flex-col space-y-0.5 opacity-60">
+                                                                    {h.pagos.map((p, pi) => (
+                                                                        <span key={pi} className="text-[9px] font-mono">{formatDate(p.fecha)}</span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <div className="flex flex-col">
+                                                            <span className="font-bold text-text-primary group-hover:text-primary transition-colors">{h.nombre}</span>
+                                                            {h.pagos.length > 1 && (
+                                                                <div className="mt-2 flex flex-col space-y-0.5 opacity-60 italic">
+                                                                    {h.pagos.map((_, pi) => (
+                                                                        <span key={pi} className="text-[9px]">Pago parcial {pi + 1}</span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <div className="flex flex-col">
+                                                            <span className={`text-[10px] font-black uppercase ${h.tipo === 'CHICO' ? 'text-primary' : 'text-purple-400'}`}>{h.tipo}</span>
+                                                            <span className="text-[9px] text-text-secondary italic">{h.rol}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4 text-right">
+                                                        <div className="flex flex-col">
+                                                            <span className="font-black text-green-400 text-base">{formatCurrency(h.montoTotal)}</span>
+                                                            {h.pagos.length > 1 && (
+                                                                <div className="mt-1.5 flex flex-col space-y-0.5 opacity-70">
+                                                                    {h.pagos.map((p, pi) => (
+                                                                        <span key={pi} className="text-[10px] font-bold text-green-500/80">{formatCurrency(p.monto)}</span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4 text-xs text-text-secondary italic max-w-xs">
+                                                        <div className="flex flex-col space-y-1">
+                                                            {h.pagos.map((p, pi) => p.notas ? (
+                                                                <span key={pi} className="block truncate">"{p.notas}"</span>
+                                                            ) : (
+                                                                h.pagos.length > 1 ? <span key={pi} className="text-[10px] opacity-30">-</span> : '-'
+                                                            ))}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {historyData.length === 0 && (
+                                                <tr>
+                                                    <td colSpan={5} className="p-10 text-center text-text-secondary italic">No se han registrado pagos para este evento todavía.</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        )}
                     </div>
                 ) : (
                     <div className="py-20 text-center">

@@ -287,17 +287,17 @@ const Tareas: React.FC = () => {
                 </button>
             </div>
 
-            <div className="flex border-b border-border overflow-x-auto">
+            <div className="flex border-b border-border overflow-x-auto no-scrollbar gap-1 py-1">
                 <button 
                     onClick={() => setActiveTab('dashboard')} 
-                    className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${activeTab === 'dashboard' ? 'border-b-2 border-primary text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                    className={`min-h-[44px] px-4 py-2.5 font-medium transition-all whitespace-nowrap active:scale-95 rounded-t-lg ${activeTab === 'dashboard' ? 'border-b-2 border-primary text-primary font-bold' : 'text-text-secondary hover:text-text-primary'}`}
                 >
                     Dashboard Anual
                 </button>
                 {(hasPermission('entregas_devocionales', 'create') || hasPermission('entregas_devocionales', 'read')) && (
                     <button 
                         onClick={() => setActiveTab('registro')} 
-                        className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${activeTab === 'registro' ? 'border-b-2 border-primary text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                        className={`min-h-[44px] px-4 py-2.5 font-medium transition-all whitespace-nowrap active:scale-95 rounded-t-lg ${activeTab === 'registro' ? 'border-b-2 border-primary text-primary font-bold' : 'text-text-secondary hover:text-text-primary'}`}
                     >
                         Registrar Entregas
                     </button>
@@ -305,7 +305,7 @@ const Tareas: React.FC = () => {
                 {(hasPermission('devocionales', 'read') || hasPermission('devocionales', 'update')) && (
                     <button 
                         onClick={() => setActiveTab('gestion')} 
-                        className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${activeTab === 'gestion' ? 'border-b-2 border-primary text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                        className={`min-h-[44px] px-4 py-2.5 font-medium transition-all whitespace-nowrap active:scale-95 rounded-t-lg ${activeTab === 'gestion' ? 'border-b-2 border-primary text-primary font-bold' : 'text-text-secondary hover:text-text-primary'}`}
                     >
                         Definir Temas
                     </button>
@@ -313,7 +313,7 @@ const Tareas: React.FC = () => {
                 {hasPermission('entregas_devocionales', 'read') && (
                     <button 
                         onClick={() => setActiveTab('historial')} 
-                        className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${activeTab === 'historial' ? 'border-b-2 border-primary text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                        className={`min-h-[44px] px-4 py-2.5 font-medium transition-all whitespace-nowrap active:scale-95 rounded-t-lg ${activeTab === 'historial' ? 'border-b-2 border-primary text-primary font-bold' : 'text-text-secondary hover:text-text-primary'}`}
                     >
                         Historial Completo
                     </button>
@@ -322,16 +322,16 @@ const Tareas: React.FC = () => {
 
             {/* TAB: DASHBOARD ANUAL */}
             {activeTab === 'dashboard' && (
-                <div className="space-y-6 animate-fade-in">
+                <div className="space-y-4 sm:space-y-6 animate-fade-in">
                     {/* Filtro de Año y Búsqueda */}
-                    <div className="flex flex-col md:flex-row gap-4 items-center bg-surface p-4 rounded-xl border border-border">
+                    <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center bg-surface p-3.5 sm:p-4 rounded-xl border border-border">
                         <div className="flex items-center gap-2 w-full md:w-auto">
-                            <CalendarDaysIcon className="w-5 h-5 text-primary" />
-                            <label className="text-sm font-bold text-text-secondary whitespace-nowrap">Año del Dashboard:</label>
+                            <CalendarDaysIcon className="w-5 h-5 text-primary shrink-0" />
+                            <label className="text-xs sm:text-sm font-bold text-text-secondary whitespace-nowrap">Año:</label>
                             <select 
                                 value={dashboardYear}
                                 onChange={(e) => setDashboardYear(Number(e.target.value))}
-                                className="bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                                className="bg-background border border-border rounded-lg px-3 py-2 min-h-[44px] text-base sm:text-sm focus:ring-2 focus:ring-primary outline-none flex-1 md:flex-none"
                             >
                                 {availableYears.map(year => (
                                     <option key={year} value={year}>{year}</option>
@@ -344,53 +344,105 @@ const Tareas: React.FC = () => {
                                 placeholder="Buscar en el ranking..." 
                                 value={searchDashboard}
                                 onChange={(e) => setSearchDashboard(e.target.value)}
-                                className="w-full bg-background border border-border rounded-lg pl-4 pr-4 py-2 focus:ring-2 focus:ring-primary outline-none"
+                                className="w-full bg-background border border-border rounded-lg pl-4 pr-4 py-2.5 min-h-[44px] text-base sm:text-sm focus:ring-2 focus:ring-primary outline-none"
                             />
                         </div>
                     </div>
 
                     {/* Tarjetas de Resumen */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-surface p-6 rounded-xl border border-border shadow-lg flex items-center gap-4">
-                            <div className="p-3 bg-primary/20 rounded-lg text-primary">
-                                <BookOpenIcon className="w-8 h-8" />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                        <div className="bg-surface p-4 sm:p-6 rounded-xl border border-border shadow-lg flex items-center gap-3 sm:gap-4">
+                            <div className="p-2.5 sm:p-3 bg-primary/20 rounded-lg text-primary shrink-0">
+                                <BookOpenIcon className="w-6 h-6 sm:w-8 sm:h-8" />
                             </div>
-                            <div>
-                                <p className="text-sm text-text-secondary">Meta Año {dashboardYear}</p>
-                                <p className="text-2xl font-bold">{statsAnuales.totalDevsMeta} Temas</p>
-                            </div>
-                        </div>
-                        <div className="bg-surface p-6 rounded-xl border border-border shadow-lg flex items-center gap-4">
-                            <div className="p-3 bg-secondary/20 rounded-lg text-secondary">
-                                <BarChartIcon className="w-8 h-8" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-text-secondary">Cumplimiento Global</p>
-                                <p className="text-2xl font-bold">{statsAnuales.cumplimientoGlobal.toFixed(1)}%</p>
+                            <div className="min-w-0">
+                                <p className="text-xs text-text-secondary">Meta Año {dashboardYear}</p>
+                                <p className="text-xl sm:text-2xl font-bold truncate">{statsAnuales.totalDevsMeta} Temas</p>
                             </div>
                         </div>
-                        <div className="bg-surface p-6 rounded-xl border border-border shadow-lg flex items-center gap-4">
-                            <div className="p-3 bg-yellow-500/20 rounded-lg text-yellow-500">
-                                <TrophyIcon className="w-8 h-8" />
+                        <div className="bg-surface p-4 sm:p-6 rounded-xl border border-border shadow-lg flex items-center gap-3 sm:gap-4">
+                            <div className="p-2.5 sm:p-3 bg-secondary/20 rounded-lg text-secondary shrink-0">
+                                <BarChartIcon className="w-6 h-6 sm:w-8 sm:h-8" />
                             </div>
-                            <div>
-                                <p className="text-sm text-text-secondary">Líder {dashboardYear}</p>
-                                <p className="text-2xl font-bold truncate">
+                            <div className="min-w-0">
+                                <p className="text-xs text-text-secondary">Cumplimiento Global</p>
+                                <p className="text-xl sm:text-2xl font-bold truncate">{statsAnuales.cumplimientoGlobal.toFixed(1)}%</p>
+                            </div>
+                        </div>
+                        <div className="bg-surface p-4 sm:p-6 rounded-xl border border-border shadow-lg flex items-center gap-3 sm:gap-4">
+                            <div className="p-2.5 sm:p-3 bg-yellow-500/20 rounded-lg text-yellow-500 shrink-0">
+                                <TrophyIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-xs text-text-secondary">Líder {dashboardYear}</p>
+                                <p className="text-xl sm:text-2xl font-bold truncate">
                                     {statsAnuales.topLider ? `${statsAnuales.topLider.nombre}` : 'N/A'}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-surface p-6 rounded-xl border border-border shadow-lg space-y-6">
+                    <div className="bg-surface p-4 sm:p-6 rounded-xl border border-border shadow-lg space-y-4 sm:space-y-6">
                         <div className="flex justify-between items-center">
-                            <h2 className="text-xl font-bold flex items-center gap-2 text-yellow-400">
-                                <TrophyIcon className="w-6 h-6" />
-                                TOP 10 - Ranking de Entregas {dashboardYear}
+                            <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2 text-yellow-400">
+                                <TrophyIcon className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+                                TOP 10 - Ranking {dashboardYear}
                             </h2>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        {/* Vista Móvil: Cards del Ranking (Sección 5.1) */}
+                        <div className="block md:hidden space-y-3">
+                            {top10Ranking.map((item, index) => (
+                                <div key={item.id} className="bg-background/60 p-3.5 rounded-xl border border-border/80 shadow-sm space-y-2">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <span className="text-lg font-bold shrink-0">
+                                                {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                                            </span>
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-text-primary truncate">{item.nombre} {item.apellido}</p>
+                                                <p className="text-[10px] text-text-secondary font-mono">{item.cedula}</p>
+                                            </div>
+                                        </div>
+                                        <span className={`px-2 py-0.5 rounded-md text-xs font-bold shrink-0 ${
+                                            item.porcentaje >= 80 ? 'bg-secondary/20 text-secondary border border-secondary/30' : 
+                                            item.porcentaje >= 50 ? 'bg-primary/20 text-primary border border-primary/30' : 
+                                            'bg-red-500/10 text-red-400 border border-red-500/20'
+                                        }`}>
+                                            {item.porcentaje.toFixed(0)}%
+                                        </span>
+                                    </div>
+
+                                    {/* Barra de progreso */}
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between text-[11px] text-text-secondary">
+                                            <span>Entregas</span>
+                                            <span className="font-bold text-text-primary">{item.count} / {statsAnuales.totalDevsMeta}</span>
+                                        </div>
+                                        <div className="w-full bg-surface rounded-full h-2.5 border border-border overflow-hidden">
+                                            <div 
+                                                className={`h-full transition-all duration-700 ${
+                                                    item.porcentaje >= 80 ? 'bg-secondary' : 
+                                                    item.porcentaje >= 50 ? 'bg-primary' : 
+                                                    'bg-red-500/60'
+                                                }`}
+                                                style={{ width: `${item.porcentaje}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            {top10Ranking.length === 0 && (
+                                <div className="py-8 text-center text-text-secondary italic text-sm">
+                                    {statsAnuales.ranking.length === 0 
+                                        ? `No hay entregas registradas en el año ${dashboardYear}.` 
+                                        : `No se encontraron resultados para "${searchDashboard}" dentro del TOP 10.`}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Vista Escritorio: Tabla de Ranking tradicional (>= 768px) */}
+                        <div className="hidden md:block overflow-x-auto">
                             <table className="min-w-full">
                                 <thead>
                                     <tr className="text-left text-xs font-bold text-text-secondary uppercase tracking-widest border-b border-border">
@@ -560,12 +612,61 @@ const Tareas: React.FC = () => {
                 <div className="space-y-4 animate-fade-in">
                     <div className="flex justify-end">
                         {hasPermission('devocionales', 'create') && (
-                            <button onClick={openModalForCreate} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-indigo-700 shadow-md font-bold">
-                                + Definir Nuevo Tema
+                            <button 
+                                onClick={openModalForCreate} 
+                                className="w-full sm:w-auto min-h-[44px] btn-shine px-5 py-2.5 rounded-xl font-bold text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 group"
+                            >
+                                <span className="transition-transform group-hover:rotate-90 duration-300 font-black text-lg leading-none">+</span>
+                                <span>Definir Nuevo Tema</span>
                             </button>
                         )}
                     </div>
-                    <div className="bg-surface shadow-lg rounded-lg overflow-x-auto border border-border">
+
+                    {/* Vista Móvil: Tarjetas (Card View) */}
+                    <div className="block md:hidden space-y-3">
+                        {sortedDevocionales.map(dev => (
+                            <div key={dev.id} className="bg-surface p-4 rounded-xl border border-border shadow-sm space-y-2.5">
+                                <div className="flex justify-between items-start gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-mono font-bold text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-md border border-primary/20 shrink-0">
+                                            S{dev.numeroSemana.toString().padStart(2, '0')}
+                                        </span>
+                                        <h4 className="font-bold text-text-primary text-base">{dev.tema}</h4>
+                                    </div>
+                                    <div className="flex gap-1 shrink-0">
+                                        {hasPermission('devocionales', 'update') && (
+                                            <button onClick={() => openModalForEdit(dev)} className="min-h-[44px] min-w-[44px] flex items-center justify-center text-primary hover:text-indigo-300 p-2 rounded-lg bg-background border border-border active:scale-95" aria-label="Editar tema">
+                                                <PencilIcon className="w-4 h-4"/>
+                                            </button>
+                                        )}
+                                        {hasPermission('devocionales', 'delete') && (
+                                            <button onClick={() => handleDeleteClick(dev)} className="min-h-[44px] min-w-[44px] flex items-center justify-center text-red-500 hover:text-red-300 p-2 rounded-lg bg-background border border-border active:scale-95" aria-label="Eliminar tema">
+                                                <TrashIcon className="w-4 h-4"/>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50 text-xs">
+                                    <div>
+                                        <span className="text-text-secondary text-[10px] uppercase font-bold">Distribución:</span>
+                                        <p className="font-mono text-text-primary">{formatDate(dev.fechaDistribucion)}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-text-secondary text-[10px] uppercase font-bold">Vencimiento:</span>
+                                        <p className="font-mono text-text-primary">{formatDate(dev.fechaVencimiento)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {sortedDevocionales.length === 0 && (
+                            <div className="p-8 text-center text-text-secondary bg-surface border border-border rounded-xl italic text-sm">
+                                No hay temas de devocionales definidos aún.
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Vista Escritorio: Tabla tradicional (>= 768px) */}
+                    <div className="hidden md:block bg-surface shadow-lg rounded-lg overflow-x-auto border border-border">
                         <table className="min-w-full divide-y divide-border">
                             <thead className="bg-background">
                                 <tr>
@@ -585,10 +686,22 @@ const Tareas: React.FC = () => {
                                         <td className="px-6 py-4 text-sm text-text-secondary">{formatDate(dev.fechaVencimiento)}</td>
                                         <td className="px-6 py-4 text-right space-x-2">
                                             {hasPermission('devocionales', 'update') && (
-                                                <button onClick={() => openModalForEdit(dev)} className="text-primary hover:text-indigo-300 p-1"><PencilIcon className="w-5 h-5"/></button>
+                                                <button 
+                                                    onClick={() => openModalForEdit(dev)} 
+                                                    className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/40 text-primary hover:bg-primary hover:text-white dark:hover:text-black hover:border-primary hover:shadow-[0_0_12px_rgba(0,255,136,0.3)] hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200 text-xs font-semibold cursor-pointer"
+                                                >
+                                                    <PencilIcon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-12" />
+                                                    <span>Editar</span>
+                                                </button>
                                             )}
                                             {hasPermission('devocionales', 'delete') && (
-                                                <button onClick={() => handleDeleteClick(dev)} className="text-red-500 hover:text-red-300 p-1"><TrashIcon className="w-5 h-5"/></button>
+                                                <button 
+                                                    onClick={() => handleDeleteClick(dev)} 
+                                                    className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-500/40 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-[0_0_12px_rgba(239,68,68,0.35)] hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200 text-xs font-semibold cursor-pointer"
+                                                >
+                                                    <TrashIcon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12" />
+                                                    <span>Eliminar</span>
+                                                </button>
                                             )}
                                         </td>
                                     </tr>
@@ -603,13 +716,13 @@ const Tareas: React.FC = () => {
             {activeTab === 'historial' && (
                 <div className="space-y-4 animate-fade-in">
                     {/* Barra de Filtros */}
-                    <div className="bg-surface p-4 rounded-lg shadow-lg border border-border grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                    <div className="bg-surface p-3.5 sm:p-4 rounded-xl shadow-lg border border-border grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 items-end">
                         <div>
                             <label className="block text-xs font-medium text-text-secondary mb-1">Adolescente</label>
                             <select 
                                 value={filterAdo} 
                                 onChange={(e) => setFilterAdo(e.target.value)}
-                                className="w-full bg-background border border-border rounded-md p-2 text-sm outline-none"
+                                className="w-full min-h-[44px] bg-background border border-border rounded-md p-2 text-base sm:text-sm outline-none"
                             >
                                 <option value="">Todos</option>
                                 {adolescentes.map(a => (
@@ -622,7 +735,7 @@ const Tareas: React.FC = () => {
                             <select 
                                 value={filterDev} 
                                 onChange={(e) => setFilterDev(e.target.value)}
-                                className="w-full bg-background border border-border rounded-md p-2 text-sm outline-none"
+                                className="w-full min-h-[44px] bg-background border border-border rounded-md p-2 text-base sm:text-sm outline-none"
                             >
                                 <option value="">Todos</option>
                                 {sortedDevocionales.map(d => (
@@ -635,7 +748,7 @@ const Tareas: React.FC = () => {
                             <DateInput 
                                 value={filterDateStart}
                                 onChange={(e) => setFilterDateStart(e.target.value)}
-                                className="w-full text-sm"
+                                className="w-full text-base sm:text-sm"
                             />
                         </div>
                         <div>
@@ -643,20 +756,68 @@ const Tareas: React.FC = () => {
                             <DateInput 
                                 value={filterDateEnd}
                                 onChange={(e) => setFilterDateEnd(e.target.value)}
-                                className="w-full text-sm"
+                                className="w-full text-base sm:text-sm"
                             />
                         </div>
                         <div>
                             <button 
                                 onClick={clearFilters}
-                                className="w-full bg-gray-700 text-text-primary hover:bg-gray-600 p-2 rounded-md text-sm flex items-center justify-center gap-2 transition-colors border border-border"
+                                className="w-full min-h-[44px] bg-gray-700 text-text-primary hover:bg-gray-600 p-2.5 rounded-md text-sm font-semibold flex items-center justify-center gap-2 active:scale-95 transition-colors border border-border"
                             >
                                 <RefreshIcon className="w-4 h-4"/> Limpiar
                             </button>
                         </div>
                     </div>
 
-                    <div className="bg-surface shadow-lg rounded-lg overflow-x-auto border border-border">
+                    {/* Vista Móvil: Tarjetas de Historial (Card View) */}
+                    <div className="block md:hidden space-y-3">
+                        {filteredEntregas.map(ent => {
+                            const ado = adolescentes.find(a => String(a.id) === String(ent.adolescenteId));
+                            const dev = devocionales.find(d => String(d.id) === String(ent.devocionalId));
+                            return (
+                                <div key={ent.id} className="bg-surface p-4 rounded-xl border border-border shadow-sm space-y-2.5">
+                                    <div className="flex justify-between items-start gap-2">
+                                        <div className="min-w-0">
+                                            <span className="text-[10px] font-mono text-text-secondary uppercase">
+                                                Entrega: {formatDate(ent.fechaEntrega)}
+                                            </span>
+                                            <h4 className="font-bold text-text-primary text-base truncate">
+                                                {ado ? `${ado.nombre} ${ado.apellido}` : 'Desconocido'}
+                                            </h4>
+                                            <span className="text-xs text-primary font-semibold block truncate">
+                                                {dev ? `Sem ${dev.numeroSemana}: ${dev.tema}` : 'Borrado'}
+                                            </span>
+                                        </div>
+                                        <div className="flex gap-1 shrink-0">
+                                            {hasPermission('entregas_devocionales', 'update') && (
+                                                <button onClick={() => handleEditEntrega(ent)} className="min-h-[44px] min-w-[44px] flex items-center justify-center text-primary hover:text-indigo-400 p-2 rounded-lg bg-background border border-border active:scale-95" title="Editar registro" aria-label="Editar registro">
+                                                    <PencilIcon className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                            {hasPermission('entregas_devocionales', 'delete') && (
+                                                <button onClick={() => handleDeleteEntrega(ent)} className="min-h-[44px] min-w-[44px] flex items-center justify-center text-red-500 hover:text-red-400 p-2 rounded-lg bg-background border border-border active:scale-95" title="Eliminar registro" aria-label="Eliminar registro">
+                                                    <TrashIcon className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {ent.observaciones && (
+                                        <p className="text-xs text-text-secondary italic bg-background/50 p-2 rounded border border-border/50">
+                                            "{ent.observaciones}"
+                                        </p>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        {filteredEntregas.length === 0 && (
+                            <div className="p-8 text-center text-text-secondary bg-surface border border-border rounded-xl italic text-sm">
+                                No se encontraron entregas registradas con los filtros seleccionados.
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Vista Escritorio: Tabla tradicional (>= 768px) */}
+                    <div className="hidden md:block bg-surface shadow-lg rounded-lg overflow-x-auto border border-border">
                          <table className="min-w-full divide-y divide-border">
                                 <thead className="bg-background">
                                     <tr>
@@ -679,13 +840,23 @@ const Tareas: React.FC = () => {
                                                 <td className="px-6 py-4 text-sm text-text-secondary italic">{ent.observaciones || '-'}</td>
                                                 <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
                                                     {hasPermission('entregas_devocionales', 'update') && (
-                                                        <button onClick={() => handleEditEntrega(ent)} className="text-primary hover:text-indigo-400 p-1" title="Editar registro">
-                                                            <PencilIcon className="w-5 h-5 inline" />
+                                                        <button 
+                                                            onClick={() => handleEditEntrega(ent)} 
+                                                            className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/40 text-primary hover:bg-primary hover:text-white dark:hover:text-black hover:border-primary hover:shadow-[0_0_12px_rgba(0,255,136,0.3)] hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200 text-xs font-semibold cursor-pointer" 
+                                                            title="Editar registro"
+                                                        >
+                                                            <PencilIcon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-12" />
+                                                            <span>Editar</span>
                                                         </button>
                                                     )}
                                                     {hasPermission('entregas_devocionales', 'delete') && (
-                                                        <button onClick={() => handleDeleteEntrega(ent)} className="text-red-500 hover:text-red-400 p-1" title="Eliminar registro">
-                                                            <TrashIcon className="w-5 h-5 inline" />
+                                                        <button 
+                                                            onClick={() => handleDeleteEntrega(ent)} 
+                                                            className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-500/40 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-[0_0_12px_rgba(239,68,68,0.35)] hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200 text-xs font-semibold cursor-pointer" 
+                                                            title="Eliminar registro"
+                                                        >
+                                                            <TrashIcon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12" />
+                                                            <span>Eliminar</span>
                                                         </button>
                                                     )}
                                                 </td>

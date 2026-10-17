@@ -78,7 +78,7 @@ const LimpiarTablas: React.FC = () => {
             </div>
             <button 
               onClick={() => handleClearClick(table)}
-              className="mt-6 w-full bg-red-600/80 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+              className="mt-6 w-full min-h-[44px] bg-red-600/80 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-xl transition-all duration-200 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] hover:-translate-y-0.5 active:scale-95 cursor-pointer"
             >
               Limpiar Tabla
             </button>

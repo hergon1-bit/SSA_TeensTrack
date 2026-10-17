@@ -3,9 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
 import { KeyIcon, UsersIcon, EyeIcon, EyeOffIcon, MailIcon, ArrowLeftIcon, RefreshIcon } from '../components/ui/Icons';
+import { useAjustes } from '../contexts/AjustesContext';
+import { LogoViewer } from '../components/ui/LogoViewer';
 
 const LoginPage: React.FC = () => {
   const { login } = useAuth();
+  const { ajustes } = useAjustes();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -185,13 +188,26 @@ const LoginPage: React.FC = () => {
 
       <section className="hidden lg:flex flex-col justify-between p-16 z-10 border-r border-white/10" style={{ background: 'radial-gradient(circle at top left, rgba(0, 255, 136, 0.1), transparent 40%)' }}>
         <div>
-          <div className="uppercase tracking-[0.15em] text-[#00ff88] text-[0.65rem] font-mono">EST. 2024 / SSA</div>
+          <div className="uppercase tracking-[0.15em] text-[#00ff88] text-[0.65rem] font-mono">
+            {ajustes?.tenantId ? `TENANT: ${ajustes.tenantId.toUpperCase()}` : 'EST. 2024 / SSA'}
+          </div>
         </div>
         
-        <div>
-          <h1 className="font-oswald text-[7rem] leading-[0.85] uppercase tracking-[-0.05em] m-0">Seguimiento<br/>Activo</h1>
-          <p className="text-xl mt-8 max-w-[400px] opacity-80 leading-relaxed">
-            Sistema de gestión y seguimiento integral para adolescentes en entornos institucionales.
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <LogoViewer
+              src={ajustes?.logoBase64}
+              alt={ajustes?.nombreSistema || 'Sistema'}
+              fallbackText={ajustes?.nombreSistema || 'Seguimiento'}
+              className="w-20 h-20 rounded-2xl shadow-xl bg-white/5 border border-white/10 p-1.5"
+              imgClassName="w-full h-full object-contain"
+            />
+          </div>
+          <h1 className="font-oswald text-[4.5rem] xl:text-[5.5rem] leading-[0.9] uppercase tracking-[-0.03em] m-0 text-white">
+            {ajustes?.nombreSistema || 'Seguimiento'}
+          </h1>
+          <p className="text-lg xl:text-xl mt-4 max-w-[420px] opacity-80 leading-relaxed text-zinc-300">
+            {ajustes?.subtitulo || 'Sistema de gestión y seguimiento integral para adolescentes en entornos institucionales.'}
           </p>
         </div>
 
@@ -208,6 +224,25 @@ const LoginPage: React.FC = () => {
       </section>
 
       <section className="flex flex-col justify-center p-8 lg:p-20 bg-[#141417] z-10 h-screen overflow-y-auto">
+        {/* Banner visible en pantallas móviles */}
+        <div className="lg:hidden flex items-center gap-3 mb-8 pb-4 border-b border-white/10">
+          <LogoViewer
+            src={ajustes?.logoBase64}
+            alt={ajustes?.nombreSistema || 'Sistema'}
+            fallbackText={ajustes?.nombreSistema || 'Seguimiento'}
+            className="w-11 h-11 rounded-xl shadow-md bg-white/5 border border-white/10 p-1"
+            imgClassName="w-full h-full object-contain"
+          />
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold text-white tracking-wide truncate">
+              {ajustes?.nombreSistema || 'Seguimiento'}
+            </h2>
+            <p className="text-xs text-zinc-400 truncate">
+              {ajustes?.subtitulo || 'Gestión Integral'}
+            </p>
+          </div>
+        </div>
+
         <div className="mb-12">
           <h2 className="text-[1.8rem] font-semibold m-0">{isFirstRun ? 'Configuración Inicial' : isRecovering ? 'Recuperar Cuenta' : 'Iniciar Sesión'}</h2>
           <p className="font-mono text-[0.75rem] opacity-50 mt-2 uppercase">

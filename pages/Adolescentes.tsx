@@ -8,7 +8,8 @@ import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
 import { DateInput } from '../components/ui/DateInput';
 import { useForm } from '../hooks/useForm';
-import { DownloadCloudIcon, RefreshIcon } from '../components/ui/Icons';
+import { DownloadCloudIcon, RefreshIcon, PencilIcon, TrashIcon } from '../components/ui/Icons';
+import StatusBadge from '../components/ui/StatusBadge';
 
 const Adolescentes: React.FC = () => {
     const { adolescentes, tutores, tutoresAdolescentes, addAdolescente, updateAdolescente, deleteAdolescente, reuniones, asistencias } = useData();
@@ -245,20 +246,37 @@ const Adolescentes: React.FC = () => {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center flex-wrap gap-4">
-                <h1 className="text-3xl font-bold text-text-primary">Gestión de Adolescentes</h1>
-                <div className="flex items-center gap-2">
+                <div>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Gestión de Adolescentes</h1>
+                    <p className="text-xs sm:text-sm text-text-secondary mt-0.5">Control de registros, estados y fichas documentales</p>
+                </div>
+                <div className="flex items-center flex-wrap gap-2.5">
                     {isAdmin && (
-                        <button onClick={handleInactivarAusentes} disabled={isSaving} className="bg-red-600 border-2 border-red-800 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-2 shadow-md font-bold disabled:opacity-50">
+                        <button 
+                            onClick={handleInactivarAusentes} 
+                            disabled={isSaving} 
+                            className="min-h-[44px] px-4 py-2.5 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 active:scale-[0.97] text-white text-xs sm:text-sm font-bold rounded-xl shadow-md hover:shadow-lg hover:shadow-red-600/30 border border-red-500/30 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 group"
+                            title="Inactivar adolescentes que no asistieron en más de 1 año"
+                        >
+                            <span className="transition-transform duration-200 group-hover:scale-110">⚠️</span>
                             <span>Inactivar Ausentes {'>'} 1 Año</span>
                         </button>
                     )}
-                    <button onClick={handleExportCSV} className="bg-secondary text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition flex items-center gap-2 shadow-md font-bold">
-                        <DownloadCloudIcon className="w-5 h-5" />
-                        <span>Exportar</span>
+                    <button 
+                        onClick={handleExportCSV} 
+                        className="min-h-[44px] px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.97] text-white text-xs sm:text-sm font-bold rounded-xl shadow-md hover:shadow-lg hover:shadow-emerald-600/30 border border-emerald-500/30 transition-all duration-200 flex items-center gap-2 group"
+                        title="Exportar base de datos a CSV"
+                    >
+                        <DownloadCloudIcon className="w-5 h-5 transition-transform duration-200 group-hover:-translate-y-0.5" />
+                        <span>Exportar CSV</span>
                     </button>
                     {hasPermission('adolescentes', 'create') && (
-                        <button onClick={openModalForCreate} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow-md font-bold">
-                            + Agregar Adolescente
+                        <button 
+                            onClick={openModalForCreate} 
+                            className="min-h-[44px] px-5 py-2.5 bg-gradient-to-r from-primary via-indigo-600 to-indigo-700 hover:from-primary/95 hover:to-indigo-500 active:scale-[0.97] text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg hover:shadow-xl hover:shadow-primary/35 border border-primary/40 transition-all duration-200 flex items-center gap-2 group btn-shine"
+                        >
+                            <span className="text-lg leading-none font-black transition-transform duration-300 group-hover:rotate-90 inline-block">+</span>
+                            <span>Agregar Adolescente</span>
                         </button>
                     )}
                 </div>
@@ -334,27 +352,47 @@ const Adolescentes: React.FC = () => {
                                         )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col gap-1">
-                                            <span className={`text-[10px] font-bold uppercase ${ado.fichaInscripcion ? 'text-green-500' : 'text-red-500'}`}>
+                                        <div className="flex flex-col gap-1.5">
+                                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                                                ado.fichaInscripcion 
+                                                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
+                                                    : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                                            }`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${ado.fichaInscripcion ? 'bg-emerald-400 shadow-xs shadow-emerald-400' : 'bg-rose-400'}`}></span>
                                                 Ficha: {ado.fichaInscripcion ? 'Sí' : 'No'}
                                             </span>
-                                            <span className={`text-[10px] font-bold uppercase ${ado.autorizacion ? 'text-green-500' : 'text-red-500'}`}>
+                                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                                                ado.autorizacion 
+                                                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
+                                                    : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                                            }`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${ado.autorizacion ? 'bg-emerald-400 shadow-xs shadow-emerald-400' : 'bg-rose-400'}`}></span>
                                                 Autorización: {ado.autorizacion ? 'Sí' : 'No'}
                                             </span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 py-0.5 inline-flex text-[10px] leading-5 font-bold rounded-md uppercase tracking-wider ${
-                                            ado.estado === 'Activo' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                                            ado.estado === 'Inactivo' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                                            'bg-red-500/20 text-red-400 border border-red-500/30'
-                                        }`}>
-                                            {ado.estado}
-                                        </span>
+                                        <StatusBadge status={ado.estado} />
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                                        {hasPermission('adolescentes', 'update') && <button onClick={() => openModalForEdit(ado)} className="text-primary hover:text-indigo-400 font-bold">Editar</button>}
-                                        {hasPermission('adolescentes', 'delete') && <button onClick={() => handleDeleteClick(ado)} className="text-red-500 hover:text-red-400 font-bold">Eliminar</button>}
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                        {hasPermission('adolescentes', 'update') && (
+                                            <button 
+                                                onClick={() => openModalForEdit(ado)} 
+                                                className="group inline-flex items-center gap-1.5 min-h-[36px] px-3.5 py-1.5 rounded-xl text-xs font-bold text-primary bg-primary/10 hover:bg-primary hover:text-white dark:hover:text-black border border-primary/30 hover:border-primary shadow-xs hover:shadow-md hover:shadow-primary/25 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200"
+                                            >
+                                                <PencilIcon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-12" />
+                                                <span>Editar</span>
+                                            </button>
+                                        )}
+                                        {hasPermission('adolescentes', 'delete') && (
+                                            <button 
+                                                onClick={() => handleDeleteClick(ado)} 
+                                                className="group inline-flex items-center gap-1.5 min-h-[36px] px-3.5 py-1.5 rounded-xl text-xs font-bold text-red-400 bg-red-500/10 hover:bg-red-600 hover:text-white border border-red-500/30 hover:border-red-600 shadow-xs hover:shadow-md hover:shadow-red-500/25 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200"
+                                            >
+                                                <TrashIcon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12" />
+                                                <span>Eliminar</span>
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             )})}
@@ -376,13 +414,7 @@ const Adolescentes: React.FC = () => {
                                     <h3 className="text-base font-bold text-text-primary">{ado.nombre} {ado.apellido}</h3>
                                     <span className="text-[10px] text-text-secondary uppercase">{ado.ciudad || '-'}</span>
                                 </div>
-                                <span className={`px-2 py-0.5 inline-flex text-[10px] leading-5 font-bold rounded-md uppercase tracking-wider ${
-                                    ado.estado === 'Activo' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                                    ado.estado === 'Inactivo' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                                    'bg-red-500/20 text-red-400 border border-red-500/30'
-                                }`}>
-                                    {ado.estado}
-                                </span>
+                                <StatusBadge status={ado.estado} size="sm" />
                             </div>
                             
                             <div className="grid grid-cols-2 gap-2 text-xs border-t border-border/50 pt-2">
@@ -402,12 +434,22 @@ const Adolescentes: React.FC = () => {
                                     )}
                                 </div>
                                 <div>
-                                    <p className="text-text-secondary font-medium">Documentos</p>
-                                    <div className="flex flex-col">
-                                        <span className={ado.fichaInscripcion ? 'text-green-500 font-bold' : 'text-red-500'}>
+                                    <p className="text-text-secondary font-medium mb-1">Documentos</p>
+                                    <div className="flex flex-col gap-1">
+                                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                                            ado.fichaInscripcion 
+                                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
+                                                : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                                        }`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${ado.fichaInscripcion ? 'bg-emerald-400 shadow-xs shadow-emerald-400' : 'bg-rose-400'}`}></span>
                                             Ficha: {ado.fichaInscripcion ? 'Sí' : 'No'}
                                         </span>
-                                        <span className={ado.autorizacion ? 'text-green-500 font-bold' : 'text-red-500'}>
+                                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                                            ado.autorizacion 
+                                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
+                                                : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                                        }`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${ado.autorizacion ? 'bg-emerald-400 shadow-xs shadow-emerald-400' : 'bg-rose-400'}`}></span>
                                             Autorización: {ado.autorizacion ? 'Sí' : 'No'}
                                         </span>
                                     </div>
@@ -428,21 +470,23 @@ const Adolescentes: React.FC = () => {
                                 </div>
                             )}
 
-                            <div className="flex justify-end gap-3 border-t border-border/50 pt-2">
+                            <div className="flex justify-end gap-2.5 border-t border-border/50 pt-3">
                                 {hasPermission('adolescentes', 'update') && (
                                     <button 
                                         onClick={() => openModalForEdit(ado)} 
-                                        className="text-primary hover:text-indigo-400 font-bold text-xs px-3 py-1.5 bg-primary/10 rounded-md transition-colors"
+                                        className="group min-h-[40px] px-4 py-2 bg-primary/10 hover:bg-primary text-primary hover:text-white dark:hover:text-black font-bold text-xs rounded-xl border border-primary/30 hover:border-primary shadow-xs hover:shadow-md hover:shadow-primary/25 active:scale-95 transition-all duration-200 flex items-center gap-1.5"
                                     >
-                                        Editar
+                                        <PencilIcon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-12" />
+                                        <span>Editar</span>
                                     </button>
                                 )}
                                 {hasPermission('adolescentes', 'delete') && (
                                     <button 
                                         onClick={() => handleDeleteClick(ado)} 
-                                        className="text-red-500 hover:text-red-400 font-bold text-xs px-3 py-1.5 bg-red-500/10 rounded-md transition-colors"
+                                        className="group min-h-[40px] px-4 py-2 bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white font-bold text-xs rounded-xl border border-red-500/30 hover:border-red-600 shadow-xs hover:shadow-md hover:shadow-red-500/25 active:scale-95 transition-all duration-200 flex items-center gap-1.5"
                                     >
-                                        Eliminar
+                                        <TrashIcon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12" />
+                                        <span>Eliminar</span>
                                     </button>
                                 )}
                             </div>
@@ -529,15 +573,28 @@ const Adolescentes: React.FC = () => {
                             </label>
                         </div>
                     </div>
-                    <div className="flex justify-end space-x-3 pt-6 border-t border-border mt-4">
-                        <button type="button" onClick={closeModal} disabled={isSaving} className="bg-gray-600 text-white px-5 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50 font-medium transition-colors">Cancelar</button>
-                        <button type="submit" disabled={isSaving} className={`bg-primary text-white px-8 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-70 flex items-center gap-2 font-bold shadow-lg transition-all ${isSaving ? 'cursor-wait' : ''}`}>
+                    <div className="flex justify-end gap-3 pt-6 border-t border-border mt-4">
+                        <button 
+                            type="button" 
+                            onClick={closeModal} 
+                            disabled={isSaving} 
+                            className="min-h-[44px] px-5 py-2.5 rounded-xl border border-border bg-surface text-text-secondary hover:text-text-primary hover:bg-surface/80 active:scale-[0.97] transition-all duration-200 font-semibold text-sm disabled:opacity-50"
+                        >
+                            Cancelar
+                        </button>
+                        <button 
+                            type="submit" 
+                            disabled={isSaving} 
+                            className={`min-h-[44px] px-7 py-2.5 rounded-xl bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/95 hover:to-indigo-500 text-white font-bold text-sm shadow-lg hover:shadow-xl hover:shadow-primary/30 active:scale-[0.97] transition-all duration-200 flex items-center gap-2 disabled:opacity-70 ${isSaving ? 'cursor-wait' : ''} btn-shine`}
+                        >
                             {isSaving ? (
                                 <>
                                     <RefreshIcon className="w-5 h-5 animate-spin" />
-                                    <span>Enviando...</span>
+                                    <span>Guardando datos...</span>
                                 </>
-                            ) : 'Grabar Datos'}
+                            ) : (
+                                <span>{editingAdolescente ? 'Actualizar Adolescente' : 'Grabar Datos'}</span>
+                            )}
                         </button>
                     </div>
                 </form>

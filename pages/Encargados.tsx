@@ -8,7 +8,7 @@ import ConfirmationModal from '../components/ui/ConfirmationModal';
 import { DateInput } from '../components/ui/DateInput';
 import { useForm } from '../hooks/useForm';
 import { formatDate } from '../utils/helpers';
-import { RefreshIcon } from '../components/ui/Icons';
+import { RefreshIcon, PencilIcon, TrashIcon } from '../components/ui/Icons';
 
 const Encargados: React.FC = () => {
     const { encargados, addEncargado, updateEncargado, deleteEncargado } = useData();
@@ -130,11 +130,15 @@ const Encargados: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold">Gestión de Encargados</h1>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Gestión de Encargados</h1>
                 {hasPermission('encargados', 'create') && (
-                    <button onClick={openModalForCreate} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow-md">
-                        Agregar Encargado
+                    <button 
+                        onClick={openModalForCreate} 
+                        className="min-h-[44px] px-5 py-2.5 bg-gradient-to-r from-primary via-indigo-600 to-indigo-700 hover:from-primary/95 hover:to-indigo-500 active:scale-[0.97] text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg hover:shadow-xl hover:shadow-primary/35 border border-primary/40 transition-all duration-200 flex items-center gap-2 group btn-shine"
+                    >
+                        <span className="text-base transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110 inline-block font-bold leading-none">+</span>
+                        <span>Agregar Encargado</span>
                     </button>
                 )}
             </div>
@@ -147,7 +151,7 @@ const Encargados: React.FC = () => {
                 className="w-full max-w-sm px-4 py-2 bg-surface border border-border rounded-md focus:ring-primary focus:border-primary transition outline-none"
             />
             
-            <div className="hidden md:block bg-surface shadow-lg rounded-lg overflow-x-auto border border-border">
+            <div className="hidden md:block bg-surface shadow-lg rounded-xl overflow-x-auto border border-border">
                 <table className="min-w-full divide-y divide-border">
                     <thead className="bg-background">
                         <tr>
@@ -174,8 +178,24 @@ const Encargados: React.FC = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">{enc.email || 'N/A'}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">{enc.telefono}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                    {hasPermission('encargados', 'update') && <button onClick={() => openModalForEdit(enc)} className="text-primary hover:text-indigo-400 font-bold">Editar</button>}
-                                    {hasPermission('encargados', 'delete') && <button onClick={() => handleDeleteClick(enc)} className="text-red-500 hover:text-red-400 font-bold">Eliminar</button>}
+                                    {hasPermission('encargados', 'update') && (
+                                        <button 
+                                            onClick={() => openModalForEdit(enc)} 
+                                            className="group inline-flex items-center gap-1.5 min-h-[36px] px-3.5 py-1.5 rounded-xl text-xs font-bold text-primary bg-primary/10 hover:bg-primary hover:text-white dark:hover:text-black border border-primary/30 hover:border-primary shadow-2xs hover:shadow-sm hover:shadow-primary/25 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200"
+                                        >
+                                            <PencilIcon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-12" />
+                                            <span>Editar</span>
+                                        </button>
+                                    )}
+                                    {hasPermission('encargados', 'delete') && (
+                                        <button 
+                                            onClick={() => handleDeleteClick(enc)} 
+                                            className="group inline-flex items-center gap-1.5 min-h-[36px] px-3.5 py-1.5 rounded-xl text-xs font-bold text-red-400 bg-red-500/10 hover:bg-red-600 hover:text-white border border-red-500/30 hover:border-red-600 shadow-2xs hover:shadow-sm hover:shadow-red-500/25 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200"
+                                        >
+                                            <TrashIcon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12" />
+                                            <span>Eliminar</span>
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}
@@ -221,21 +241,23 @@ const Encargados: React.FC = () => {
                             )}
                         </div>
 
-                        <div className="flex justify-end gap-3 border-t border-border/50 pt-2">
+                        <div className="flex justify-end gap-2.5 border-t border-border/50 pt-3">
                             {hasPermission('encargados', 'update') && (
                                 <button 
                                     onClick={() => openModalForEdit(enc)} 
-                                    className="text-primary hover:text-indigo-400 font-bold text-xs px-3 py-1.5 bg-primary/10 rounded-md transition-colors"
+                                    className="min-h-[40px] px-4 py-2 bg-primary/10 hover:bg-primary text-primary hover:text-white font-bold text-xs rounded-xl border border-primary/25 hover:border-primary shadow-xs hover:shadow-md hover:shadow-primary/20 active:scale-95 transition-all duration-200 flex items-center gap-1.5"
                                 >
-                                    Editar
+                                    <PencilIcon className="w-3.5 h-3.5" />
+                                    <span>Editar</span>
                                 </button>
                             )}
                             {hasPermission('encargados', 'delete') && (
                                 <button 
                                     onClick={() => handleDeleteClick(enc)} 
-                                    className="text-red-500 hover:text-red-400 font-bold text-xs px-3 py-1.5 bg-red-500/10 rounded-md transition-colors"
+                                    className="min-h-[40px] px-4 py-2 bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white font-bold text-xs rounded-xl border border-red-500/25 hover:border-red-600 shadow-xs hover:shadow-md hover:shadow-red-500/20 active:scale-95 transition-all duration-200 flex items-center gap-1.5"
                                 >
-                                    Eliminar
+                                    <TrashIcon className="w-3.5 h-3.5" />
+                                    <span>Eliminar</span>
                                 </button>
                             )}
                         </div>
@@ -244,7 +266,7 @@ const Encargados: React.FC = () => {
             </div>
 
             {filteredEncargados.length === 0 && (
-                <div className="bg-surface p-8 text-center text-text-secondary italic rounded-lg border border-border">
+                <div className="bg-surface p-8 text-center text-text-secondary italic rounded-xl border border-border">
                     No se encontraron encargados.
                 </div>
             )}
@@ -269,8 +291,19 @@ const Encargados: React.FC = () => {
                         <InputField label="Ciudad" name="ciudad" value={values.ciudad} onChange={handleInputChange} required disabled={isSaving} />
                     </div>
                     <div className="flex justify-end space-x-3 pt-6 border-t border-border mt-4">
-                        <button type="button" onClick={closeModal} disabled={isSaving} className="bg-gray-600 text-white px-5 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50">Cancelar</button>
-                        <button type="submit" disabled={isSaving} className="bg-primary text-white px-8 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2 font-bold shadow-lg">
+                        <button 
+                            type="button" 
+                            onClick={closeModal} 
+                            disabled={isSaving} 
+                            className="min-h-[44px] px-5 py-2.5 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-surface/80 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 shadow-xs hover:shadow"
+                        >
+                            Cancelar
+                        </button>
+                        <button 
+                            type="submit" 
+                            disabled={isSaving} 
+                            className={`min-h-[44px] px-7 py-2.5 rounded-xl bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/95 hover:to-indigo-500 text-white font-bold text-sm shadow-lg hover:shadow-xl hover:shadow-primary/30 active:scale-[0.97] transition-all duration-200 flex items-center gap-2 disabled:opacity-70 ${isSaving ? 'cursor-wait' : ''} btn-shine`}
+                        >
                             {isSaving ? (
                                 <>
                                     <RefreshIcon className="w-5 h-5 animate-spin" />
@@ -305,7 +338,7 @@ const Encargados: React.FC = () => {
                 title="Descartar Cambios"
                 message="Tienes cambios sin guardar. ¿Estás seguro de que quieres cerrar y descartar los cambios?"
                 confirmText="Descartar"
-                confirmButtonClassName="bg-yellow-600 text-white hover:bg-yellow-700"
+                confirmButtonClassName="bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/30"
             />
         </div>
     );

@@ -7,7 +7,8 @@ import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
 import { DateInput } from '../components/ui/DateInput';
 import { useForm } from '../hooks/useForm';
-import { RefreshIcon, UsersIcon } from '../components/ui/Icons';
+import { RefreshIcon, UsersIcon, PencilIcon, TrashIcon, CheckCircleIcon, EyeIcon } from '../components/ui/Icons';
+import StatusBadge from '../components/ui/StatusBadge';
 import { api } from '../services/api';
 
 interface ReunionesProps {
@@ -247,32 +248,32 @@ const Reuniones: React.FC<ReunionesProps> = ({ navigateTo }) => {
                 )}
             </div>
             
-            <div className="bg-surface p-4 rounded-lg flex flex-wrap gap-4 items-center">
-                <span className="text-text-secondary font-medium">Filtrar por fecha:</span>
-                <div className="w-36">
-                    <label htmlFor="start-date" className="sr-only">Desde</label>
-                    <DateInput 
-                        id="start-date"
-                        name="start"
-                        value={dateFilter.start}
-                        onChange={handleDateFilterChange}
-                        className="bg-background border border-border rounded-md px-3 py-1.5 text-sm"
-                    />
+            <div className="bg-surface p-3 sm:p-4 rounded-xl border border-border shadow-xs flex flex-col sm:flex-row sm:items-center gap-3">
+                <span className="text-text-secondary font-medium text-xs sm:text-sm whitespace-nowrap">Filtrar por fecha:</span>
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 flex-1">
+                    <div className="flex-1 sm:w-36">
+                        <label htmlFor="start-date" className="sr-only">Desde</label>
+                        <DateInput 
+                            id="start-date"
+                            name="start"
+                            value={dateFilter.start}
+                            onChange={handleDateFilterChange}
+                        />
+                    </div>
+                    <span className="text-text-secondary hidden sm:inline">-</span>
+                    <div className="flex-1 sm:w-36">
+                        <label htmlFor="end-date" className="sr-only">Hasta</label>
+                        <DateInput 
+                            id="end-date"
+                            name="end"
+                            value={dateFilter.end}
+                            onChange={handleDateFilterChange}
+                        />
+                    </div>
+                    <button onClick={clearDateFilter} className="min-h-[44px] px-4 py-2 bg-gray-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-700 active:scale-95 transition-all">
+                        Limpiar
+                    </button>
                 </div>
-                <span className="text-text-secondary">-</span>
-                 <div className="w-36">
-                    <label htmlFor="end-date" className="sr-only">Hasta</label>
-                    <DateInput 
-                        id="end-date"
-                        name="end"
-                        value={dateFilter.end}
-                        onChange={handleDateFilterChange}
-                        className="bg-background border border-border rounded-md px-3 py-1.5 text-sm"
-                    />
-                </div>
-                <button onClick={clearDateFilter} className="bg-gray-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-gray-700 transition">
-                    Limpiar
-                </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -293,9 +294,7 @@ const Reuniones: React.FC<ReunionesProps> = ({ navigateTo }) => {
                                         </div>
                                         <h2 className="text-lg font-bold text-text-primary mb-2 leading-tight">{reunion.tema}</h2>
                                     </div>
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full shrink-0 ${
-                                        reunion.estado === 'En Proceso' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                                    }`}>{reunion.estado}</span>
+                                    <StatusBadge status={reunion.estado} />
                                 </div>
                                 <p className="text-sm text-text-secondary">{formatDate(reunion.fecha)}</p>
                                 <p className="text-sm text-text-secondary mb-2">Dirigido por: {encargado?.nombre} {encargado?.apellido}</p>
@@ -304,29 +303,42 @@ const Reuniones: React.FC<ReunionesProps> = ({ navigateTo }) => {
                                     <span>{stats.presentes} Presentes</span>
                                 </div>
                             </div>
-                            <div className="mt-4 flex space-x-2">
+                            <div className="mt-4 flex flex-wrap gap-2">
                                 {reunion.estado === 'En Proceso' && hasPermission('reuniones', 'update') && hasPermission('asistencias', 'create') &&
-                                    <button onClick={() => navigateTo('asistencia', { reunionId: reunion.id })} className="flex-1 bg-secondary text-white px-3 py-1.5 rounded-md text-sm hover:bg-emerald-500 transition">
-                                        Tomar Asistencia
+                                    <button 
+                                        onClick={() => navigateTo('asistencia', { reunionId: reunion.id })} 
+                                        className="flex-1 min-h-[44px] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-3 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-md hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95 transition-all duration-200 flex items-center justify-center gap-1.5 group btn-shine"
+                                    >
+                                        <CheckCircleIcon className="w-4 h-4 transition-transform group-hover:scale-110" />
+                                        <span>Tomar Asistencia</span>
                                     </button>
                                 }
                                 {reunion.estado === 'Finalizado' && hasPermission('reuniones', 'read') && hasPermission('asistencias', 'read') &&
-                                    <button onClick={() => setViewingAttendanceReunion(reunion)} className="flex-1 bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-700 transition">
-                                        Ver Asistencia
+                                    <button 
+                                        onClick={() => setViewingAttendanceReunion(reunion)} 
+                                        className="flex-1 min-h-[44px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-3 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-md hover:shadow-lg hover:shadow-blue-500/25 active:scale-95 transition-all duration-200 flex items-center justify-center gap-1.5 group btn-shine"
+                                    >
+                                        <EyeIcon className="w-4 h-4 transition-transform group-hover:scale-110" />
+                                        <span>Ver Asistencia</span>
                                     </button>
                                 }
                                 {hasPermission('reuniones', 'update') &&
-                                    <button onClick={() => openModalForEdit(reunion)} className="flex-1 bg-gray-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-gray-700 transition">
-                                        Editar
+                                    <button 
+                                        onClick={() => openModalForEdit(reunion)} 
+                                        className="min-h-[44px] px-3.5 py-2 rounded-xl bg-surface hover:bg-surface/80 border border-border text-text-primary hover:text-primary font-semibold text-xs sm:text-sm shadow-xs hover:shadow active:scale-95 transition-all duration-200 flex items-center justify-center gap-1.5 group"
+                                    >
+                                        <PencilIcon className="w-3.5 h-3.5 transition-transform group-hover:scale-110 group-hover:-rotate-12" />
+                                        <span>Editar</span>
                                     </button>
                                 }
                                 {reunion.estado === 'En Proceso' && hasPermission('reuniones', 'delete') && (
                                     <button 
                                         onClick={() => handleDeleteClick(reunion)} 
-                                        className="flex-1 bg-red-600/80 text-white px-3 py-1.5 rounded-md text-sm hover:bg-red-600 transition"
+                                        className="min-h-[44px] px-3.5 py-2 rounded-xl bg-red-500/10 hover:bg-red-600 border border-red-500/30 hover:border-red-600 text-red-400 hover:text-white font-semibold text-xs sm:text-sm shadow-xs hover:shadow-md hover:shadow-red-500/25 active:scale-95 transition-all duration-200 flex items-center justify-center gap-1.5 group"
                                         title="Eliminar Reunión"
                                     >
-                                        Eliminar
+                                        <TrashIcon className="w-3.5 h-3.5 transition-transform group-hover:scale-110 group-hover:rotate-12" />
+                                        <span>Eliminar</span>
                                     </button>
                                 )}
                             </div>
@@ -365,9 +377,9 @@ const Reuniones: React.FC<ReunionesProps> = ({ navigateTo }) => {
                             Es una clase TeensPro
                         </label>
                     </div>
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <button type="button" onClick={closeModal} className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">Cancelar</button>
-                        <button type="submit" className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Guardar</button>
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4 border-t border-border mt-4">
+                        <button type="button" onClick={closeModal} className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 active:scale-95 transition-all text-center">Cancelar</button>
+                        <button type="submit" className="w-full sm:w-auto min-h-[44px] px-6 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-indigo-700 active:scale-95 transition-all shadow-md text-center">Guardar</button>
                     </div>
                 </form>
             </Modal>
@@ -441,25 +453,24 @@ const Reuniones: React.FC<ReunionesProps> = ({ navigateTo }) => {
 
 const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
     <div>
-        <label htmlFor={props.name} className="block text-sm font-medium text-text-secondary">{label}</label>
+        <label htmlFor={props.name} className="block text-sm font-medium text-text-secondary mb-1.5">{label}</label>
         {props.type === 'date' ? (
             <DateInput
                 {...props}
                 id={props.name}
                 value={props.value as string}
                 onChange={(e) => props.onChange && props.onChange(e as any)}
-                className="mt-1"
             />
         ) : (
-            <input {...props} id={props.name} className="mt-1 block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+            <input {...props} id={props.name} className="block w-full px-3 py-2.5 min-h-[44px] bg-background border border-border rounded-lg shadow-xs focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-base sm:text-sm text-text-primary placeholder:text-text-secondary/50 disabled:opacity-50 transition-all" />
         )}
     </div>
 );
 
 const SelectField: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { label: string }> = ({ label, children, ...props }) => (
     <div>
-        <label htmlFor={props.name} className="block text-sm font-medium text-text-secondary">{label}</label>
-        <select {...props} id={props.name} className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-background border-border focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md">
+        <label htmlFor={props.name} className="block text-sm font-medium text-text-secondary mb-1.5">{label}</label>
+        <select {...props} id={props.name} className="block w-full px-3 py-2.5 min-h-[44px] text-base sm:text-sm bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent shadow-xs">
             {children}
         </select>
     </div>

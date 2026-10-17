@@ -12,6 +12,8 @@ import { TicketSelectorModal } from '../components/TicketSelectorModal';
 import { useForm } from '../hooks/useForm';
 import { ChevronDownIcon, TrashIcon, UsersIcon, PencilIcon, RefreshIcon, CheckCircleIcon, ClipboardListIcon, ShieldIcon, HeartHandshakeIcon, CalculatorIcon, TicketIcon, PrinterIcon, DownloadIcon } from '../components/ui/Icons';
 import DateInput from '../components/ui/DateInput';
+import { useAjustes } from '../contexts/AjustesContext';
+import { optimizeLogoForPDF } from '../utils/logoOptimizer';
 
 const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
     <div>
@@ -24,7 +26,7 @@ const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label
                 onChange={(e) => props.onChange && props.onChange(e as any)}
             />
         ) : (
-            <input {...props} id={props.name} className="block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-primary disabled:opacity-50 transition-all sm:text-sm" />
+            <input {...props} id={props.name} className="block w-full px-3 py-2.5 min-h-[44px] bg-background border border-border rounded-lg shadow-xs focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-primary disabled:opacity-50 transition-all text-base sm:text-sm" />
         )}
     </div>
 );
@@ -45,6 +47,7 @@ const Eventos: React.FC = () => {
         addInscripcionServidor, updateInscripcionServidor, deleteInscripcionServidor, addPagoServidor, deletePagoServidor
     } = useData();
     const { hasPermission, user } = useAuth();
+    const { ajustes } = useAjustes();
     
     const [selectedEvent, setSelectedEvent] = useState<Evento | null>(null);
     const [activeTabModal, setActiveTabModal] = useState<'chicos' | 'servidores' | 'adhesiones'>('chicos');
@@ -482,19 +485,36 @@ const Eventos: React.FC = () => {
         };
     }, [selectedEvent, entregasAdhesiones, pagosAdhesiones, searchAdhesionPersona, showOnlyAdhesionPendientes]);
 
-    const handleExportPDF = () => {
+    const handleExportPDF = async () => {
         if (!selectedEvent || !eventAdhesionesDetails) return;
 
         const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+        const systemName = (ajustes?.nombreSistema || 'Seguimiento').toUpperCase();
+
+        let headerTextX = 40;
+        if (ajustes?.logoBase64) {
+            try {
+                const optLogo = await optimizeLogoForPDF(ajustes.logoBase64, 180, 80);
+                if (optLogo) {
+                    const ratio = optLogo.width / optLogo.height;
+                    const imgH = 26;
+                    const imgW = Math.min(75, Math.max(15, imgH * ratio));
+                    doc.addImage(optLogo.dataUrl, optLogo.format, 40, 26, imgW, imgH);
+                    headerTextX = 40 + imgW + 12;
+                }
+            } catch (e) {
+                console.warn('Could not add logo to Eventos PDF', e);
+            }
+        }
 
         // Title Header
-        doc.setFontSize(13);
+        doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text(`PLANILLA DE COBROS ENTRADAS: ${selectedEvent.tema.toUpperCase()}`, 40, 40);
+        doc.text(`${systemName}: PLANILLA DE COBROS ENTRADAS - ${selectedEvent.tema.toUpperCase()}`, headerTextX, 38);
 
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
-        doc.text(`${formatDate(selectedEvent.fechaInicio)} ${selectedEvent.horaInicio ? `- ${selectedEvent.horaInicio}hs` : ''} | Lugar: ${selectedEvent.lugar}`, 40, 55);
+        doc.text(`${formatDate(selectedEvent.fechaInicio)} ${selectedEvent.horaInicio ? `- ${selectedEvent.horaInicio}hs` : ''} | Lugar: ${selectedEvent.lugar}`, headerTextX, 52);
 
         // Summary Table (PEDIDO | PAGADO | SALDO)
         autoTable(doc, {
@@ -858,9 +878,9 @@ const Eventos: React.FC = () => {
                                             <span className="bg-red-500/20 text-red-500 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest w-max mt-1 border border-red-500/50">Finalizado</span>
                                         )}
                                     </div>
-                                    <div className="absolute top-4 right-4 flex space-x-1">
-                                        {hasPermission('eventos', 'update') && <button onClick={(e) => openModalForEdit(e, evento)} className="bg-gray-700 text-white p-2 rounded-md hover:bg-gray-600 transition shadow" title="Editar Evento"><PencilIcon className="w-4 h-4" /></button>}
-                                        {hasPermission('eventos', 'delete') && <button onClick={(e) => handleDeleteClick(e, evento)} className="bg-red-600/80 text-white p-2 rounded-md hover:bg-red-600 transition shadow" title="Borrar Evento"><TrashIcon className="w-4 h-4" /></button>}
+                                    <div className="absolute top-3 right-3 flex space-x-1">
+                                        {hasPermission('eventos', 'update') && <button onClick={(e) => openModalForEdit(e, evento)} className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-gray-700/80 text-white rounded-lg hover:bg-gray-600 active:scale-95 transition shadow" title="Editar Evento"><PencilIcon className="w-4 h-4" /></button>}
+                                        {hasPermission('eventos', 'delete') && <button onClick={(e) => handleDeleteClick(e, evento)} className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-red-600/80 text-white rounded-lg hover:bg-red-600 active:scale-95 transition shadow" title="Borrar Evento"><TrashIcon className="w-4 h-4" /></button>}
                                     </div>
                                 </div>
                                 <div className="space-y-1 mb-4">
@@ -1043,14 +1063,14 @@ const Eventos: React.FC = () => {
             {selectedEvent && eventDetails && (
                 <Modal isOpen={!!selectedEvent} onClose={() => setSelectedEvent(null)} title={`Gestionar: ${selectedEvent.tema}`} size="4xl">
                     <div className="space-y-6">
-                        <div className="flex border-b border-border overflow-x-auto">
+                        <div className="flex border-b border-border overflow-x-auto no-scrollbar gap-2 py-1">
                             {selectedEvent.esVentaAdhesiones && (
-                                <button onClick={() => setActiveTabModal('adhesiones')} className={`px-4 py-2 font-bold transition flex items-center gap-2 whitespace-nowrap ${activeTabModal === 'adhesiones' ? 'border-b-2 border-primary text-primary' : 'text-text-secondary'}`}>
-                                    <TicketIcon className="w-4 h-4" /> Venta de Adhesiones / Entradas ({eventAdhesionesDetails?.eventEntregas.length || 0})
+                                <button onClick={() => setActiveTabModal('adhesiones')} className={`min-h-[44px] px-3.5 py-2 font-bold transition-all active:scale-95 flex items-center gap-2 whitespace-nowrap text-xs sm:text-sm ${activeTabModal === 'adhesiones' ? 'border-b-2 border-primary text-primary' : 'text-text-secondary hover:text-text-primary'}`}>
+                                    <TicketIcon className="w-4 h-4 shrink-0" /> Venta de Adhesiones ({eventAdhesionesDetails?.eventEntregas.length || 0})
                                 </button>
                             )}
-                            <button onClick={() => setActiveTabModal('chicos')} className={`px-4 py-2 font-bold transition whitespace-nowrap ${activeTabModal === 'chicos' ? 'border-b-2 border-primary text-primary' : 'text-text-secondary'}`}>{selectedEvent.esParaPadres ? 'Tutores' : 'Chicos'} ({eventDetails.inscritos.length})</button>
-                            <button onClick={() => setActiveTabModal('servidores')} className={`px-4 py-2 font-bold transition whitespace-nowrap ${activeTabModal === 'servidores' ? 'border-b-2 border-primary text-primary' : 'text-text-secondary'}`}>Servidores Apoyo ({eventDetails.inscritosServidores.length})</button>
+                            <button onClick={() => setActiveTabModal('chicos')} className={`min-h-[44px] px-3.5 py-2 font-bold transition-all active:scale-95 whitespace-nowrap text-xs sm:text-sm ${activeTabModal === 'chicos' ? 'border-b-2 border-primary text-primary' : 'text-text-secondary hover:text-text-primary'}`}>{selectedEvent.esParaPadres ? 'Tutores' : 'Chicos'} ({eventDetails.inscritos.length})</button>
+                            <button onClick={() => setActiveTabModal('servidores')} className={`min-h-[44px] px-3.5 py-2 font-bold transition-all active:scale-95 whitespace-nowrap text-xs sm:text-sm ${activeTabModal === 'servidores' ? 'border-b-2 border-primary text-primary' : 'text-text-secondary hover:text-text-primary'}`}>Servidores Apoyo ({eventDetails.inscritosServidores.length})</button>
                         </div>
 
                         {activeTabModal === 'adhesiones' && eventAdhesionesDetails && (
@@ -1417,35 +1437,35 @@ const Eventos: React.FC = () => {
                                             )}
                                             {selectedEvent.tieneCosto && item.debe > 0 && hasPermission('pagos_eventos', 'create') && (
                                                 <div className="space-y-2">
-                                                    <div className="flex gap-2">
+                                                    <div className="flex flex-col sm:flex-row gap-2">
                                                         <input 
                                                             type="number" 
                                                             placeholder="Monto" 
                                                             value={newPayment[item.inscripcion.id] || ''} 
                                                             onChange={e => setNewPayment({...newPayment, [item.inscripcion.id]: e.target.value})} 
                                                             disabled={isSavingPayment[item.inscripcion.id]}
-                                                            className="flex-1 bg-surface border border-border p-1.5 text-sm rounded outline-none focus:ring-1 ring-primary disabled:opacity-50" 
+                                                            className="flex-1 bg-surface border border-border p-2.5 min-h-[44px] text-base sm:text-sm rounded-lg outline-none focus:ring-1 ring-primary disabled:opacity-50" 
                                                         />
                                                         <DateInput 
                                                             value={newPaymentDate[item.inscripcion.id] || new Date().toISOString().split('T')[0]} 
                                                             onChange={e => setNewPaymentDate({...newPaymentDate, [item.inscripcion.id]: e.target.value})} 
                                                             disabled={isSavingPayment[item.inscripcion.id]}
-                                                            className="w-36 text-sm" 
+                                                            className="w-full sm:w-36 text-base sm:text-sm" 
                                                         />
                                                     </div>
-                                                    <div className="flex gap-2">
+                                                    <div className="flex flex-col sm:flex-row gap-2">
                                                         <input 
                                                             type="text" 
                                                             placeholder="Observaciones / Notas" 
                                                             value={newPaymentNote[item.inscripcion.id] || ''} 
                                                             onChange={e => setNewPaymentNote({...newPaymentNote, [item.inscripcion.id]: e.target.value})} 
                                                             disabled={isSavingPayment[item.inscripcion.id]}
-                                                            className="flex-1 bg-surface border border-border p-1.5 text-xs rounded outline-none focus:ring-1 ring-primary disabled:opacity-50" 
+                                                            className="flex-1 bg-surface border border-border p-2.5 min-h-[44px] text-base sm:text-sm rounded-lg outline-none focus:ring-1 ring-primary disabled:opacity-50" 
                                                         />
                                                         <button 
                                                             onClick={() => handleAddPago(item.inscripcion.id)} 
                                                             disabled={isSavingPayment[item.inscripcion.id] || !newPayment[item.inscripcion.id]}
-                                                            className={`bg-secondary text-white px-4 py-1 rounded text-sm font-bold shadow-md hover:bg-emerald-600 transition-colors flex items-center gap-2 ${isSavingPayment[item.inscripcion.id] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                            className={`bg-secondary text-white px-5 py-2.5 min-h-[44px] rounded-lg text-sm font-bold shadow-md hover:bg-emerald-600 active:scale-95 transition-all flex items-center justify-center gap-2 ${isSavingPayment[item.inscripcion.id] ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                         >
                                                             {isSavingPayment[item.inscripcion.id] ? <RefreshIcon className="w-4 h-4 animate-spin" /> : null}
                                                             Abonar
@@ -1531,35 +1551,35 @@ const Eventos: React.FC = () => {
                                             )}
                                             {item.inscripcion.tipoBeca !== 'Total' && item.debe > 0 && hasPermission('pagos_servidores', 'create') && (
                                                 <div className="space-y-2 mt-3">
-                                                    <div className="flex gap-2">
+                                                    <div className="flex flex-col sm:flex-row gap-2">
                                                         <input 
                                                             type="number" 
                                                             placeholder="Monto" 
                                                             value={newPaymentServidor[item.inscripcion.id] || ''} 
                                                             onChange={e => setNewPaymentServidor({...newPaymentServidor, [item.inscripcion.id]: e.target.value})} 
                                                             disabled={isSavingPayment[item.inscripcion.id]}
-                                                            className="flex-1 bg-surface border border-border p-1.5 text-sm rounded outline-none focus:ring-1 ring-primary disabled:opacity-50" 
+                                                            className="flex-1 bg-surface border border-border p-2.5 min-h-[44px] text-base sm:text-sm rounded-lg outline-none focus:ring-1 ring-primary disabled:opacity-50" 
                                                         />
                                                         <DateInput 
                                                             value={newPaymentDateServidor[item.inscripcion.id] || new Date().toISOString().split('T')[0]} 
                                                             onChange={e => setNewPaymentDateServidor({...newPaymentDateServidor, [item.inscripcion.id]: e.target.value})} 
                                                             disabled={isSavingPayment[item.inscripcion.id]}
-                                                            className="w-36 text-sm" 
+                                                            className="w-full sm:w-36 text-base sm:text-sm" 
                                                         />
                                                     </div>
-                                                    <div className="flex gap-2">
+                                                    <div className="flex flex-col sm:flex-row gap-2">
                                                         <input 
                                                             type="text" 
                                                             placeholder="Observaciones / Notas" 
                                                             value={newPaymentNoteServidor[item.inscripcion.id] || ''} 
                                                             onChange={e => setNewPaymentNoteServidor({...newPaymentNoteServidor, [item.inscripcion.id]: e.target.value})} 
                                                             disabled={isSavingPayment[item.inscripcion.id]}
-                                                            className="flex-1 bg-surface border border-border p-1.5 text-xs rounded outline-none focus:ring-1 ring-primary disabled:opacity-50" 
+                                                            className="flex-1 bg-surface border border-border p-2.5 min-h-[44px] text-base sm:text-sm rounded-lg outline-none focus:ring-1 ring-primary disabled:opacity-50" 
                                                         />
                                                         <button 
                                                             onClick={() => handleAddPagoServidor(item.inscripcion.id)} 
                                                             disabled={isSavingPayment[item.inscripcion.id] || !newPaymentServidor[item.inscripcion.id]}
-                                                            className={`bg-secondary text-white px-4 py-1 rounded text-sm font-bold shadow-md hover:bg-emerald-600 transition-colors flex items-center gap-2 ${isSavingPayment[item.inscripcion.id] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                            className={`bg-secondary text-white px-5 py-2.5 min-h-[44px] rounded-lg text-sm font-bold shadow-md hover:bg-emerald-600 active:scale-95 transition-all flex items-center justify-center gap-2 ${isSavingPayment[item.inscripcion.id] ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                         >
                                                             {isSavingPayment[item.inscripcion.id] ? <RefreshIcon className="w-4 h-4 animate-spin" /> : null}
                                                             Abonar

@@ -137,7 +137,7 @@ const InactivarTeens: React.FC = () => {
                     <button 
                         onClick={handleInactivarAusentes} 
                         disabled={isSaving} 
-                        className="w-full sm:w-auto bg-red-600 border-2 border-red-800 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition flex items-center justify-center gap-2 shadow-md font-bold disabled:opacity-50 mt-4"
+                        className="w-full sm:w-auto min-h-[48px] bg-gradient-to-r from-red-600 via-rose-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white px-7 py-3 rounded-xl shadow-lg hover:shadow-xl hover:shadow-red-500/30 active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2 font-bold disabled:opacity-50 mt-4 btn-shine"
                     >
                         {isSaving ? (
                             <>
@@ -196,7 +196,7 @@ const InactivarTeens: React.FC = () => {
                         <div className="flex justify-end">
                             <button 
                                 onClick={() => setAlertMessage(null)} 
-                                className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-opacity-90"
+                                className="min-h-[44px] px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/95 hover:to-indigo-500 text-white font-bold text-sm shadow-md hover:shadow-lg hover:shadow-primary/30 active:scale-[0.97] transition-all duration-200 btn-shine"
                             >
                                 Entendido
                             </button>

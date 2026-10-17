@@ -265,4 +265,15 @@ export interface TemaClase {
   notas?: string;
 }
 
-export type Page = 'dashboard' | 'adolescentes' | 'encargados' | 'reuniones' | 'tutores' | 'eventos' | 'reportes' | 'reportes-financieros' | 'usuarios' | 'roles' | 'asistencia' | 'limpiar-tablas' | 'cargar-tablas' | 'update-password' | 'tareas' | 'servidores' | 'migracion-supabase' | 'ver-tablas' | 'inactivar-teens' | 'workspace' | 'plan-clases';
+export interface AjustesSistema {
+  id: string;
+  tenantId?: string;
+  nombreSistema: string;
+  subtitulo?: string;
+  logoBase64?: string | null;
+  updatedAt?: string;
+  createdAt?: string;
+}
+
+export type Page = 'dashboard' | 'adolescentes' | 'encargados' | 'reuniones' | 'tutores' | 'eventos' | 'reportes' | 'reportes-financieros' | 'usuarios' | 'roles' | 'asistencia' | 'limpiar-tablas' | 'cargar-tablas' | 'update-password' | 'tareas' | 'servidores' | 'migracion-supabase' | 'ver-tablas' | 'inactivar-teens' | 'workspace' | 'plan-clases' | 'logos-ajustes';
+

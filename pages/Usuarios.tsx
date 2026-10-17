@@ -6,7 +6,7 @@ import { Usuario } from '../types';
 import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
 import { useForm } from '../hooks/useForm';
-import { KeyIcon, EyeIcon, EyeOffIcon, UsersIcon, RefreshIcon } from '../components/ui/Icons';
+import { KeyIcon, EyeIcon, EyeOffIcon, UsersIcon, RefreshIcon, PencilIcon, TrashIcon } from '../components/ui/Icons';
 import { formatRelativeTime, formatDate } from '../utils/helpers';
 
 // Helper Components
@@ -27,20 +27,36 @@ const SelectField: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { la
 );
 
 const RoleBadge: React.FC<{ roleName?: string }> = ({ roleName }) => {
-    if (!roleName) return <span className="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-500/30 text-gray-300">Sin Rol</span>;
+    if (!roleName) {
+        return (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider rounded-full bg-gray-500/15 text-gray-400 border border-gray-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                Sin Rol
+            </span>
+        );
+    }
 
-    const colorClasses: { [key: string]: string } = {
-        'Administrador': 'bg-red-500/30 text-red-300 border border-red-500/20',
-        'Encargado': 'bg-blue-500/30 text-blue-300 border border-blue-500/20',
-        'Staff': 'bg-green-500/30 text-green-300 border border-green-500/20',
-    };
-    
-    const defaultColor = 'bg-gray-500/30 text-gray-300 border border-gray-500/20';
-    
-    const className = colorClasses[roleName] || defaultColor;
+    const isAdm = roleName.toLowerCase().includes('admin');
+    const isEnc = roleName.toLowerCase().includes('encargado');
+    const isStaff = roleName.toLowerCase().includes('staff') || roleName.toLowerCase().includes('servidor');
+
+    let badgeClass = 'bg-primary/15 text-primary border-primary/30';
+    let dotClass = 'bg-primary shadow-xs shadow-primary/50';
+
+    if (isAdm) {
+      badgeClass = 'bg-rose-500/15 text-rose-400 border-rose-500/30 hover:border-rose-400/60 hover:bg-rose-500/25 hover:shadow-rose-500/20';
+      dotClass = 'bg-rose-400 shadow-xs shadow-rose-400/50';
+    } else if (isEnc) {
+      badgeClass = 'bg-blue-500/15 text-blue-400 border-blue-500/30 hover:border-blue-400/60 hover:bg-blue-500/25 hover:shadow-blue-500/20';
+      dotClass = 'bg-blue-400 shadow-xs shadow-blue-400/50';
+    } else if (isStaff) {
+      badgeClass = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:border-emerald-400/60 hover:bg-emerald-500/25 hover:shadow-emerald-500/20';
+      dotClass = 'bg-emerald-400 shadow-xs shadow-emerald-400/50';
+    }
 
     return (
-        <span className={`px-2 py-0.5 inline-flex text-[10px] font-bold uppercase tracking-wider rounded-md ${className}`}>
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider rounded-full border shadow-2xs transition-all duration-300 hover:scale-105 active:scale-95 cursor-default select-none ${badgeClass}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`}></span>
             {roleName}
         </span>
     );
@@ -193,8 +209,12 @@ const Usuarios: React.FC = () => {
                     </div>
                 </div>
                 {hasPermission('usuarios', 'create') && (
-                    <button onClick={openModalForCreateUser} className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition shadow-lg font-bold">
-                        + Agregar Usuario
+                    <button 
+                        onClick={openModalForCreateUser} 
+                        className="min-h-[44px] px-5 py-2.5 bg-gradient-to-r from-primary via-indigo-600 to-indigo-700 hover:from-primary/95 hover:to-indigo-500 active:scale-[0.97] text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg hover:shadow-xl hover:shadow-primary/35 border border-primary/40 transition-all duration-200 flex items-center gap-2 group btn-shine"
+                    >
+                        <span className="text-base transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110 inline-block font-bold leading-none">+</span>
+                        <span>Agregar Usuario</span>
                     </button>
                 )}
             </div>
@@ -267,30 +287,32 @@ const Usuarios: React.FC = () => {
                                         </span>
                                     )}
                                 </td>
-                                <td className="py-4 px-6 whitespace-nowrap text-right space-x-3 text-sm">
+                                <td className="py-4 px-6 whitespace-nowrap text-right space-x-2 text-sm">
                                     {hasPermission('usuarios', 'update') && (
                                         <>
                                             <button 
                                                 onClick={() => handleSendResetEmail(user.email)} 
-                                                className="p-1.5 rounded-md text-yellow-500 hover:bg-yellow-500/10 transition-colors" 
-                                                title="Enviar recuperación"
+                                                className="group inline-flex items-center justify-center min-h-[36px] w-[36px] rounded-xl text-amber-400 bg-amber-500/10 hover:bg-amber-500 hover:text-white border border-amber-500/25 hover:border-amber-500 shadow-2xs hover:shadow-sm hover:shadow-amber-500/20 active:scale-95 transition-all duration-200" 
+                                                title="Enviar recuperación de contraseña"
                                             >
-                                                <KeyIcon className="w-5 h-5" />
+                                                <KeyIcon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
                                             </button>
                                             <button 
                                                 onClick={() => openModalForEditUser(user)} 
-                                                className="text-primary hover:text-indigo-400 font-bold transition-colors"
+                                                className="group inline-flex items-center gap-1.5 min-h-[36px] px-3.5 py-1.5 rounded-xl text-xs font-bold text-primary bg-primary/10 hover:bg-primary hover:text-white dark:hover:text-black border border-primary/30 hover:border-primary shadow-2xs hover:shadow-sm hover:shadow-primary/25 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200"
                                             >
-                                                Editar
+                                                <PencilIcon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-12" />
+                                                <span>Editar</span>
                                             </button>
                                         </>
                                     )}
                                     {hasPermission('usuarios', 'delete') && (
                                         <button 
                                             onClick={() => handleDeleteUserClick(user)} 
-                                            className="text-red-500 hover:text-red-400 font-bold transition-colors"
+                                            className="group inline-flex items-center gap-1.5 min-h-[36px] px-3.5 py-1.5 rounded-xl text-xs font-bold text-red-400 bg-red-500/10 hover:bg-red-600 hover:text-white border border-red-500/30 hover:border-red-600 shadow-2xs hover:shadow-sm hover:shadow-red-500/25 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-200"
                                         >
-                                            Eliminar
+                                            <TrashIcon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12" />
+                                            <span>Eliminar</span>
                                         </button>
                                     )}
                                 </td>

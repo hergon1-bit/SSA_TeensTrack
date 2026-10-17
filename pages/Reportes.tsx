@@ -6,6 +6,9 @@ import { Adolescente } from '../types';
 import { RefreshIcon, PrinterIcon, UsersIcon, CalendarDaysIcon, ClipboardListIcon, DocumentDownloadIcon } from '../components/ui/Icons';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useAjustes } from '../contexts/AjustesContext';
+import { optimizeLogoForPDF } from '../utils/logoOptimizer';
+import StatusBadge from '../components/ui/StatusBadge';
 
 type ReportType = 'cumpleanos' | 'asistenciaReunion' | 'ausencias' | 'activos' | 'adolescentesTutores' | 'tutores' | 'documentos' | 'asistenciaTeensPro' | 'primeraVez' | 'asistenciaAnual';
 type DocumentFilter = 'Todos' | 'Ficha Pendiente' | 'Ficha Entregada' | 'Autorización Pendiente' | 'Autorización Entregada' | 'Todo Entregado' | 'Todo Pendiente';
@@ -14,6 +17,7 @@ const Reportes: React.FC = () => {
     const { 
         adolescentes, reuniones, asistencias, encargados, tutores, tutoresAdolescentes, fetchData 
     } = useData();
+    const { ajustes } = useAjustes();
     const [activeReport, setActiveReport] = useState<ReportType>('cumpleanos');
     const [selectedReunionId, setSelectedReunionId] = useState<string | null>(null);
     const [docFilter, setDocFilter] = useState<DocumentFilter>('Todos');
@@ -196,7 +200,7 @@ const Reportes: React.FC = () => {
 
             case 'asistenciaAnual':
                 return adolescentes
-                    .filter(a => a.estado === 'Activo')
+                    .filter(a => a.estado?.trim().toLowerCase() === 'activo')
                     .slice()
                     .sort((a, b) => {
                         const nameA = `${a.nombre} ${a.apellido}`.trim().toLowerCase();
@@ -219,8 +223,9 @@ const Reportes: React.FC = () => {
             .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
     }, [reuniones, filterYearAsistencia]);
 
-    const handlePrint = () => {
+    const handlePrint = async () => {
         const doc = new jsPDF(activeReport === 'asistenciaAnual' ? 'landscape' : 'portrait');
+        const systemName = ajustes?.nombreSistema || 'Seguimiento';
         const title = activeReport === 'cumpleanos' ? 'CUMPLEAÑOS DEL MES' :
                       activeReport === 'asistenciaReunion' ? 'ASISTENCIA POR REUNIÓN' :
                       activeReport === 'ausencias' ? 'ALERTA DE AUSENCIAS' : 
@@ -228,23 +233,44 @@ const Reportes: React.FC = () => {
                       activeReport === 'tutores' ? 'LISTADO DE TUTORES' : 
                       activeReport === 'documentos' ? 'ESTADO DE DOCUMENTACIÓN' : 
                       activeReport === 'asistenciaTeensPro' ? 'ASISTENCIA TEENSPRO' : 
-                      activeReport === 'asistenciaAnual' ? `SEGUIMIENTO DE ASISTENCIA ANUAL (${filterYearAsistencia})` :
+                      activeReport === 'asistenciaAnual' ? `${systemName.toUpperCase()} - ASISTENCIA ANUAL (${filterYearAsistencia})` :
                       activeReport === 'primeraVez' ? `PRIMERA VEZ (${String(filterMonth).padStart(2, '0')}/${filterYear})` : 'LISTA DE ACTIVOS';
         
-        doc.setFontSize(16);
-        doc.text(`Reporte de Seguimiento: ${title}`, 14, 15);
-        doc.setFontSize(10);
+        let textX = 14;
+        let tableStartY = 28;
+
+        if (ajustes?.logoBase64) {
+            try {
+                const optLogo = await optimizeLogoForPDF(ajustes.logoBase64, 160, 60);
+                if (optLogo) {
+                    const ratio = optLogo.width / optLogo.height;
+                    const imgH = 13;
+                    const imgW = Math.min(32, Math.max(10, imgH * ratio));
+                    doc.addImage(optLogo.dataUrl, optLogo.format, 14, 8, imgW, imgH);
+                    textX = 14 + imgW + 5;
+                }
+            } catch (err) {
+                console.warn('[Reportes] Fallo al incrustar logo en PDF:', err);
+            }
+        }
+
+        doc.setFontSize(15);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${systemName}: ${title}`, textX, 15);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
         const reportNow = new Date();
-        doc.text(`Generado el: ${formatDate(reportNow)} ${reportNow.toLocaleTimeString('es-PY')}`, 14, 22);
+        doc.text(`Generado el: ${formatDate(reportNow)} ${reportNow.toLocaleTimeString('es-PY')}`, textX, 21);
 
         if (activeReport === 'asistenciaReunion' && selectedReunionId) {
             const reu = reuniones.find(r => r.id === selectedReunionId);
             if (reu) {
-                doc.text(`Reunión: ${reu.tema} - Fecha: ${formatDate(reu.fecha)}`, 14, 28);
+                doc.text(`Reunión: ${reu.tema} - Fecha: ${formatDate(reu.fecha)}`, textX, 26);
                 const enc = encargados.find(e => e.id === reu.encargadoId);
                 if (enc) {
-                    doc.text(`Encargado: ${enc.nombre} ${enc.apellido}`, 14, 34);
+                    doc.text(`Encargado: ${enc.nombre} ${enc.apellido}`, textX, 31);
                 }
+                tableStartY = 38;
             }
         }
 
@@ -326,7 +352,7 @@ const Reportes: React.FC = () => {
         });
 
         autoTable(doc, {
-            startY: activeReport === 'asistenciaReunion' ? 40 : 28,
+            startY: tableStartY,
             head: headers,
             body: tableData,
             headStyles: { fillColor: [79, 70, 229] },
@@ -743,17 +769,19 @@ const Reportes: React.FC = () => {
                                             <td className="p-4 font-bold text-text-primary group-hover:text-primary">{a.nombre} {a.apellido}</td>
                                             <td className="p-4 text-text-secondary font-mono font-bold">{a.cedula}</td>
                                             <td className="p-4">
-                                                <span className={`text-xs font-bold uppercase ${a.fichaInscripcion ? 'text-green-500' : 'text-red-500'}`}>
+                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${a.fichaInscripcion ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${a.fichaInscripcion ? 'bg-emerald-400 shadow-xs' : 'bg-rose-400'}`}></span>
                                                     {a.fichaInscripcion ? 'Sí' : 'No'}
                                                 </span>
                                             </td>
                                             <td className="p-4">
-                                                <span className={`text-xs font-bold uppercase ${a.autorizacion ? 'text-green-500' : 'text-red-500'}`}>
+                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${a.autorizacion ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${a.autorizacion ? 'bg-emerald-400 shadow-xs' : 'bg-rose-400'}`}></span>
                                                     {a.autorizacion ? 'Sí' : 'No'}
                                                 </span>
                                             </td>
-                                            <td className={`p-4 text-xs font-bold uppercase ${estadoColor}`}>
-                                                {estadoDoc}
+                                            <td className="p-4">
+                                                <StatusBadge status={estadoDoc} size="sm" />
                                             </td>
                                         </tr>
                                     );

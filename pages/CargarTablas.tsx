@@ -605,7 +605,11 @@ const CargarTablas: React.FC = () => {
                                     </tbody>
                                 </table>
                             </div>
-                            <button onClick={handleImport} disabled={validRowsCount === 0} className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors">
+                            <button 
+                                onClick={handleImport} 
+                                disabled={validRowsCount === 0} 
+                                className="w-full min-h-[48px] btn-shine py-3 px-4 rounded-xl font-bold text-sm shadow-md active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                            >
                                 {`Importar ${validRowsCount} Registros Válidos`}
                             </button>
                         </div>
