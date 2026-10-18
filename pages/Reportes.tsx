@@ -13,6 +13,21 @@ import StatusBadge from '../components/ui/StatusBadge';
 type ReportType = 'cumpleanos' | 'asistenciaReunion' | 'ausencias' | 'activos' | 'adolescentesTutores' | 'tutores' | 'documentos' | 'asistenciaTeensPro' | 'primeraVez' | 'asistenciaAnual';
 type DocumentFilter = 'Todos' | 'Ficha Pendiente' | 'Ficha Entregada' | 'Autorización Pendiente' | 'Autorización Entregada' | 'Todo Entregado' | 'Todo Pendiente';
 
+const getFechaTimestamp = (fecha?: string | null): number => {
+    if (!fecha) return 0;
+    const clean = fecha.trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(clean)) {
+        const parts = clean.split('T')[0].split(' ')[0].split('-');
+        return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])).getTime();
+    }
+    if (/^\d{2}\/\d{2}\/\d{4}/.test(clean)) {
+        const parts = clean.split(' ')[0].split('/');
+        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0])).getTime();
+    }
+    const d = new Date(clean);
+    return isNaN(d.getTime()) ? 0 : d.getTime();
+};
+
 const Reportes: React.FC = () => {
     const { 
         adolescentes, reuniones, asistencias, encargados, tutores, tutoresAdolescentes, fetchData 
@@ -65,9 +80,14 @@ const Reportes: React.FC = () => {
         
         if (reunionesAsistidas.length === 0) return '-';
         
-        const sortedReuniones = reunionesAsistidas.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+        const sortedReuniones = reunionesAsistidas.sort((a, b) => getFechaTimestamp(b.fecha) - getFechaTimestamp(a.fecha));
         return formatDate(sortedReuniones[0].fecha);
     };
+
+    // Ordenar reuniones de forma decreciente (más actual primero)
+    const reunionesOrdenadas = useMemo(() => {
+        return [...reuniones].sort((a, b) => getFechaTimestamp(b.fecha) - getFechaTimestamp(a.fecha));
+    }, [reuniones]);
 
     const reportData = useMemo(() => {
         switch (activeReport) {
@@ -93,7 +113,7 @@ const Reportes: React.FC = () => {
 
             case 'ausencias':
                 // Adolescentes con más de 3 ausencias en las últimas 5 reuniones
-                const ultimas5 = reuniones.slice(0, 5).map(r => String(r.id));
+                const ultimas5 = reunionesOrdenadas.slice(0, 5).map(r => String(r.id));
                 return adolescentes.filter(a => {
                     if (a.estado !== 'Activo') return false;
                     const ausencias = asistencias.filter(asis => ultimas5.includes(String(asis.reunionId)) && String(asis.adolescenteId) === String(a.id) && asis.estado === 'Ausente');
@@ -210,7 +230,7 @@ const Reportes: React.FC = () => {
 
             default: return [];
         }
-    }, [activeReport, adolescentes, reuniones, asistencias, selectedReunionId, tutores, tutoresAdolescentes, docFilter, filterTeensProAtLeastOne, filter15OrOlder, filterMonth, filterYear]);
+    }, [activeReport, adolescentes, reuniones, reunionesOrdenadas, asistencias, selectedReunionId, tutores, tutoresAdolescentes, docFilter, filterTeensProAtLeastOne, filter15OrOlder, filterMonth, filterYear]);
 
     // Reuniones filtradas para el reporte de asistencia anual (ordenadas cronológicamente)
     const reunionesAnuales = useMemo(() => {
@@ -362,103 +382,272 @@ const Reportes: React.FC = () => {
     };
 
     const handleExportExcel = () => {
-        if (activeReport === 'activos' || activeReport === 'primeraVez') {
-            // Create CSV content for 'activos'
-            const headers = ['Nombre y Apellido', 'Edad', 'Ciudad', 'Teléfono', 'Tutores'];
-            
-            const csvRows = [];
-            csvRows.push(headers.join(',')); // Add headers
-            
-            reportData.forEach((item: any) => {
-                const a = item as Adolescente;
-                const age = calcularEdad(a.fechaNacimiento);
-                const city = a.ciudad ? a.ciudad : (a.barrio ? `Barrio ${a.barrio}` : '');
-                
-                // Find tutors for this teen
-                const adoTutoresIds = tutoresAdolescentes
-                    .filter(ta => String(ta.adolescenteId) === String(a.id))
-                    .map(ta => String(ta.tutorId));
-                    
-                const adoTutores = tutores.filter(t => adoTutoresIds.includes(String(t.id)));
-                const tutoresNames = adoTutores.length > 0 
-                    ? adoTutores.map(t => `${t.nombre} ${t.apellido}`).join('; ')
-                    : 'Ninguno';
+        const escapeCsv = (val: any) => `"${String(val ?? '').replace(/"/g, '""')}"`;
 
-                // Escape quotes and commas
-                const escapeCsv = (str: string) => `"${String(str).replace(/"/g, '""')}"`;
-                
-                const row = [
-                    escapeCsv(`${a.nombre} ${a.apellido}`),
-                    age,
-                    escapeCsv(city),
-                    escapeCsv(a.telefono || ''),
-                    escapeCsv(tutoresNames)
-                ];
-                
-                csvRows.push(row.join(','));
+        const downloadCsv = (filename: string, headers: string[], rows: (string | number)[][]) => {
+            const csvRows: string[] = [];
+            csvRows.push(headers.map(escapeCsv).join(','));
+            rows.forEach(row => {
+                csvRows.push(row.map(escapeCsv).join(','));
             });
-
             const csvString = csvRows.join('\n');
             const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
-            link.setAttribute('download', `Lista_Activos_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute('download', filename);
             link.style.display = 'none';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        } else if (activeReport === 'asistenciaTeensPro') {
-            const teensProReus = reuniones.filter(r => r.esTeensPro).sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
-            
-            const headers = ['Nombre y Apellido', ...teensProReus.map((_, index) => `ID TEEN ${index + 1}`)];
-            const csvRows = [];
-            csvRows.push(headers.join(','));
+            URL.revokeObjectURL(url);
+        };
 
-            reportData.forEach((item: any) => {
-                const row = [`"${item.nombre} ${item.apellido}"`];
+        if (activeReport === 'asistenciaReunion') {
+            if (!selectedReunionId) {
+                alert('Por favor selecciona una reunión para poder exportar a Excel.');
+                return;
+            }
+            if (reportData.length === 0) {
+                alert('No hay asistentes registrados para la reunión seleccionada.');
+                return;
+            }
+            const reu = reuniones.find(r => String(r.id) === String(selectedReunionId));
+            const reuTema = reu?.tema || 'Reunion';
+            const reuFecha = reu?.fecha ? formatDate(reu.fecha) : '';
+            const safeFecha = reuFecha ? reuFecha.replace(/\//g, '-') : new Date().toISOString().split('T')[0];
+            const safeTema = reuTema.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+
+            const headers = [
+                'N°',
+                'Reunión',
+                'Fecha Reunión',
+                'Nombre Completo',
+                'Cédula',
+                'Reg. Salud',
+                'Edad',
+                'Fecha Nacimiento',
+                'Ciudad',
+                'Barrio',
+                'Teléfono',
+                'Tutores',
+                'Estado Asistencia'
+            ];
+
+            const rows = reportData.map((item: any, idx: number) => {
+                const a = item as Adolescente;
+                const age = calcularEdad(a.fechaNacimiento);
+                const adoTutoresIds = tutoresAdolescentes
+                    .filter(ta => String(ta.adolescenteId) === String(a.id))
+                    .map(ta => String(ta.tutorId));
+                const adoTutores = tutores.filter(t => adoTutoresIds.includes(String(t.id)));
+                const tutoresStr = adoTutores.length > 0 
+                    ? adoTutores.map(t => `${t.nombre} ${t.apellido} (${t.telefono || 'Sin tel'})`).join('; ')
+                    : 'Ninguno';
+
+                return [
+                    idx + 1,
+                    reuTema,
+                    reuFecha,
+                    `${a.nombre} ${a.apellido}`,
+                    a.cedula || 'N/A',
+                    a.registro || 'N/A',
+                    age,
+                    formatDate(a.fechaNacimiento),
+                    a.ciudad || '',
+                    a.barrio || '',
+                    a.telefono || 'N/A',
+                    tutoresStr,
+                    'Presente'
+                ];
+            });
+
+            downloadCsv(`Asistencia_Reunion_${safeFecha}_${safeTema}.csv`, headers, rows);
+            return;
+        }
+
+        if (activeReport === 'cumpleanos') {
+            const currentMonthName = new Date().toLocaleString('es-ES', { month: 'long' });
+            const headers = ['N°', 'Nombre Completo', 'Fecha Cumpleaños', 'Reg. Salud', 'Edad', 'Barrio', 'Ciudad', 'Teléfono'];
+            const rows = reportData.map((item: any, idx: number) => {
+                const a = item as Adolescente;
+                return [
+                    idx + 1,
+                    `${a.nombre} ${a.apellido}`,
+                    getBirthdayThisYear(a.fechaNacimiento),
+                    a.registro || 'N/A',
+                    calcularEdad(a.fechaNacimiento),
+                    a.barrio || 'N/A',
+                    a.ciudad || 'N/A',
+                    a.telefono || 'N/A'
+                ];
+            });
+            downloadCsv(`Cumpleanos_${currentMonthName}_${new Date().getFullYear()}.csv`, headers, rows);
+            return;
+        }
+
+        if (activeReport === 'ausencias') {
+            const headers = ['N°', 'Nombre Completo', 'Cédula', 'Reg. Salud', 'Edad', 'Ciudad', 'Barrio', 'Teléfono'];
+            const rows = reportData.map((item: any, idx: number) => {
+                const a = item as Adolescente;
+                return [
+                    idx + 1,
+                    `${a.nombre} ${a.apellido}`,
+                    a.cedula || 'N/A',
+                    a.registro || 'N/A',
+                    calcularEdad(a.fechaNacimiento),
+                    a.ciudad || 'N/A',
+                    a.barrio || 'N/A',
+                    a.telefono || 'N/A'
+                ];
+            });
+            downloadCsv(`Alerta_Ausencias_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+            return;
+        }
+
+        if (activeReport === 'activos') {
+            const headers = ['N°', 'Nombre Completo', 'Cédula', 'Reg. Salud', 'Edad', 'Fecha Nacimiento', 'Ciudad', 'Barrio', 'Teléfono', 'Última Asistencia', 'Tutores'];
+            const rows = reportData.map((item: any, idx: number) => {
+                const a = item as Adolescente;
+                const age = calcularEdad(a.fechaNacimiento);
+                const adoTutoresIds = tutoresAdolescentes
+                    .filter(ta => String(ta.adolescenteId) === String(a.id))
+                    .map(ta => String(ta.tutorId));
+                const adoTutores = tutores.filter(t => adoTutoresIds.includes(String(t.id)));
+                const tutoresStr = adoTutores.length > 0 
+                    ? adoTutores.map(t => `${t.nombre} ${t.apellido} (${t.telefono || 'Sin tel'})`).join('; ')
+                    : 'Ninguno';
+
+                return [
+                    idx + 1,
+                    `${a.nombre} ${a.apellido}`,
+                    a.cedula || 'N/A',
+                    a.registro || 'N/A',
+                    age,
+                    formatDate(a.fechaNacimiento),
+                    a.ciudad || '',
+                    a.barrio || '',
+                    a.telefono || 'N/A',
+                    getUltimaAsistencia(a.id),
+                    tutoresStr
+                ];
+            });
+            const suffix = filterTeensProAtLeastOne ? '_TeensPro' : '';
+            downloadCsv(`Lista_Activos${suffix}_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+            return;
+        }
+
+        if (activeReport === 'primeraVez') {
+            const headers = ['N°', 'Nombre Completo', 'Fecha Nacimiento', 'Reg. Salud', 'Edad', 'Ciudad', 'Barrio', 'Teléfono', 'Tutores'];
+            const rows = reportData.map((item: any, idx: number) => {
+                const a = item as Adolescente;
+                const age = calcularEdad(a.fechaNacimiento);
+                const adoTutoresIds = tutoresAdolescentes
+                    .filter(ta => String(ta.adolescenteId) === String(a.id))
+                    .map(ta => String(ta.tutorId));
+                const adoTutores = tutores.filter(t => adoTutoresIds.includes(String(t.id)));
+                const tutoresStr = adoTutores.length > 0 
+                    ? adoTutores.map(t => `${t.nombre} ${t.apellido} (${t.telefono || 'Sin tel'})`).join('; ')
+                    : 'Ninguno';
+
+                return [
+                    idx + 1,
+                    `${a.nombre} ${a.apellido}`,
+                    formatDate(a.fechaNacimiento),
+                    a.registro || 'N/A',
+                    age,
+                    a.ciudad || '',
+                    a.barrio || '',
+                    a.telefono || 'N/A',
+                    tutoresStr
+                ];
+            });
+            downloadCsv(`Primera_Vez_${String(filterMonth).padStart(2, '0')}_${filterYear}.csv`, headers, rows);
+            return;
+        }
+
+        if (activeReport === 'adolescentesTutores') {
+            const headers = ['N°', 'Adolescente', 'Cédula', 'Tutores (Nombre y Teléfono)'];
+            const rows = reportData.map((item: any, idx: number) => {
+                const tutoresStr = item.tutores?.length > 0
+                    ? item.tutores.map((t: any) => `${t.nombre} ${t.apellido} (${t.telefono || 'Sin tel'})`).join('; ')
+                    : 'Sin tutores';
+                return [
+                    idx + 1,
+                    `${item.nombre} ${item.apellido}`,
+                    item.cedula || 'N/A',
+                    tutoresStr
+                ];
+            });
+            downloadCsv(`Adolescentes_y_Tutores_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+            return;
+        }
+
+        if (activeReport === 'tutores') {
+            const headers = ['N°', 'Nombre Completo', 'Cédula', 'Teléfono', 'Parentesco', 'Barrio', 'Ciudad'];
+            const rows = reportData.map((item: any, idx: number) => [
+                idx + 1,
+                `${item.nombre} ${item.apellido}`,
+                item.cedula || 'N/A',
+                item.telefono || '-',
+                item.parentesco || '-',
+                item.barrio || '-',
+                item.ciudad || '-'
+            ]);
+            downloadCsv(`Listado_Tutores_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+            return;
+        }
+
+        if (activeReport === 'documentos') {
+            const headers = ['N°', 'Nombre Completo', 'Cédula', 'Ficha Inscripción', 'Autorización', 'Estado Documentación'];
+            const rows = reportData.map((item: any, idx: number) => {
+                const a = item as Adolescente;
+                let estadoDoc = 'Al día';
+                if (!a.fichaInscripcion && !a.autorizacion) estadoDoc = 'Faltan ambos';
+                else if (!a.fichaInscripcion) estadoDoc = 'Falta Ficha';
+                else if (!a.autorizacion) estadoDoc = 'Falta Autorización';
+
+                return [
+                    idx + 1,
+                    `${a.nombre} ${a.apellido}`,
+                    a.cedula || 'N/A',
+                    a.fichaInscripcion ? 'Sí' : 'No',
+                    a.autorizacion ? 'Sí' : 'No',
+                    estadoDoc
+                ];
+            });
+            const safeFilter = docFilter.replace(/\s+/g, '_');
+            downloadCsv(`Estado_Documentos_${safeFilter}_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+            return;
+        }
+
+        if (activeReport === 'asistenciaTeensPro') {
+            const teensProReus = reuniones.filter(r => r.esTeensPro).sort((a, b) => getFechaTimestamp(a.fecha) - getFechaTimestamp(b.fecha));
+            const headers = ['N°', 'Nombre y Apellido', ...teensProReus.map((_, index) => `ID TEEN ${index + 1}`)];
+            const rows = reportData.map((item: any, idx: number) => {
+                const row: (string | number)[] = [idx + 1, `${item.nombre} ${item.apellido}`];
                 teensProReus.forEach(reu => {
                     const asistencia = asistencias.find(asis => String(asis.reunionId) === String(reu.id) && String(asis.adolescenteId) === String(item.id));
                     row.push(asistencia?.estado === 'Presente' ? '1' : '0');
                 });
-                csvRows.push(row.join(','));
+                return row;
             });
+            downloadCsv(`Asistencia_TeensPro_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+            return;
+        }
 
-            const csvString = csvRows.join('\n');
-            const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `Asistencia_TeensPro_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } else if (activeReport === 'asistenciaAnual') {
-            const escapeCsv = (str: string) => `"${String(str).replace(/"/g, '""')}"`;
-            const headers = ['Nombre y Apellido', ...reunionesAnuales.map(r => escapeCsv(formatDate(r.fecha)))];
-            const csvRows = [];
-            csvRows.push(headers.join(','));
-
-            reportData.forEach((item: any) => {
-                const row = [escapeCsv(`${item.nombre} ${item.apellido}`)];
+        if (activeReport === 'asistenciaAnual') {
+            const headers = ['N°', 'Nombre y Apellido', ...reunionesAnuales.map(r => formatDate(r.fecha))];
+            const rows = reportData.map((item: any, idx: number) => {
+                const row: (string | number)[] = [idx + 1, `${item.nombre} ${item.apellido}`];
                 reunionesAnuales.forEach(reu => {
                     const asistencia = asistencias.find(asis => String(asis.reunionId) === String(reu.id) && String(asis.adolescenteId) === String(item.id));
                     row.push(asistencia?.estado === 'Presente' ? '1' : '0');
                 });
-                csvRows.push(row.join(','));
+                return row;
             });
-
-            const csvString = csvRows.join('\n');
-            const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `Asistencia_Anual_${filterYearAsistencia}_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            downloadCsv(`Asistencia_Anual_${filterYearAsistencia}_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+            return;
         }
     };
 
@@ -467,16 +656,14 @@ const Reportes: React.FC = () => {
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold">Reportes de Seguimiento</h1>
                 <div className="flex gap-2">
-                    {(activeReport === 'activos' || activeReport === 'asistenciaTeensPro' || activeReport === 'primeraVez' || activeReport === 'asistenciaAnual') && (
-                        <button 
-                            onClick={handleExportExcel} 
-                            className="bg-green-600 border border-green-700 p-2 rounded-lg text-white hover:bg-green-700 transition-colors flex items-center gap-2 text-sm font-medium px-4"
-                            title="Desgargar Excel (CSV)"
-                        >
-                            <DocumentDownloadIcon className="w-5 h-5" />
-                            <span className="hidden sm:inline">Exportar Excel</span>
-                        </button>
-                    )}
+                    <button 
+                        onClick={handleExportExcel} 
+                        className="bg-green-600 border border-green-700 p-2 rounded-lg text-white hover:bg-green-700 active:scale-95 transition-colors flex items-center gap-2 text-sm font-medium px-4 shadow-sm"
+                        title="Descargar Excel (CSV)"
+                    >
+                        <DocumentDownloadIcon className="w-5 h-5" />
+                        <span className="hidden sm:inline">Exportar Excel</span>
+                    </button>
                     <button 
                         onClick={handlePrint} 
                         className="bg-surface border border-border p-2 rounded-lg text-text-secondary hover:text-text-primary transition-colors"
@@ -621,16 +808,33 @@ const Reportes: React.FC = () => {
 
             <div className="bg-surface p-6 rounded-lg shadow-lg border border-border">
                 {activeReport === 'asistenciaReunion' && (
-                    <div className="mb-6 bg-background/50 p-4 rounded-lg border border-border/50">
-                        <label className="block text-xs font-bold text-text-secondary uppercase tracking-widest mb-2">Seleccionar Reunión</label>
-                        <select 
-                            value={selectedReunionId || ''} 
-                            onChange={e => setSelectedReunionId(e.target.value || null)} 
-                            className="bg-background border border-border p-2.5 rounded-md w-full max-w-md text-text-primary focus:ring-2 ring-primary outline-none"
-                        >
-                            <option value="">-- Selecciona una reunión --</option>
-                            {reuniones.map(r => <option key={r.id} value={r.id}>{formatDate(r.fecha)} - {r.tema}</option>)}
-                        </select>
+                    <div className="mb-6 bg-background/50 p-4 rounded-lg border border-border/50 flex flex-wrap items-end justify-between gap-4">
+                        <div className="w-full max-w-md">
+                            <label className="block text-xs font-bold text-text-secondary uppercase tracking-widest mb-2">Seleccionar Reunión</label>
+                            <select 
+                                value={selectedReunionId || ''} 
+                                onChange={e => setSelectedReunionId(e.target.value || null)} 
+                                className="bg-background border border-border p-2.5 rounded-md w-full text-text-primary focus:ring-2 ring-primary outline-none"
+                            >
+                                <option value="">-- Selecciona una reunión --</option>
+                                {reunionesOrdenadas.map(r => <option key={r.id} value={r.id}>{formatDate(r.fecha)} - {r.tema}</option>)}
+                            </select>
+                        </div>
+                        {selectedReunionId && (
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs sm:text-sm text-text-secondary">
+                                    Total presentes: <strong className="text-text-primary font-bold text-sm sm:text-base">{reportData.length}</strong>
+                                </span>
+                                <button 
+                                    onClick={handleExportExcel}
+                                    className="bg-green-600 hover:bg-green-700 text-white px-3.5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm transition active:scale-95"
+                                    title="Exportar asistencia a Excel (CSV)"
+                                >
+                                    <DocumentDownloadIcon className="w-4 h-4" />
+                                    <span>Exportar Excel</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
 
